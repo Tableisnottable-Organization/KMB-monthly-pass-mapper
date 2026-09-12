@@ -30,7 +30,7 @@ export const HONG_KONG_TRAFFIC_SOURCES: readonly HongKongTrafficSource[] = [
     description: 'KMB route and stop ETA data distributed through DATA.GOV.HK.',
     officialUrl: 'https://data.gov.hk/en-data/dataset/hk-kmb-kmbeta',
     apiBaseUrl: 'https://data.etag.com.hk',
-    status: 'AVAILABLE',
+    status: 'CONNECTED',
     attribution: 'Data supplied by KMB via DATA.GOV.HK.',
   },
   {
@@ -41,7 +41,7 @@ export const HONG_KONG_TRAFFIC_SOURCES: readonly HongKongTrafficSource[] = [
     description: 'Citybus and NWFB ETA data distributed through DATA.GOV.HK.',
     officialUrl: 'https://data.gov.hk/en-data/dataset/hk-ctb-eta',
     apiBaseUrl: 'https://rt.data.gov.hk',
-    status: 'AVAILABLE',
+    status: 'CONNECTED',
     attribution: 'Data supplied by Citybus via DATA.GOV.HK.',
   },
   {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getScoredDemoRoutes } from '../../../data/demoRoutes';
 import { getMonthlyPassInsight } from '../../../domain/monthlyPass';
+import { HK_TRANSIT_API } from '../../../data/hkTransitApi';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,7 +71,13 @@ export async function GET(request: NextRequest) {
       meta: {
         count: routes.length,
         generatedAt: new Date().toISOString(),
-        source: 'demo-data',
+        source: 'scored-demo-routes',
+        liveFeeds: {
+          kmb: `${HK_TRANSIT_API.kmb}/eta/{stop_id}/{route}`,
+          citybus: `${HK_TRANSIT_API.citybus}/eta/CTB/{stop_id}/{route}`,
+          connected: true,
+          note: 'Use /api/transit for validated KMB and Citybus route/ETA payloads.',
+        },
       },
     },
     {

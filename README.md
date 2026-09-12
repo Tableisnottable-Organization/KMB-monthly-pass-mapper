@@ -34,6 +34,21 @@ warning when a matching notice or event exists. The current records are typed
 demo records with official-source links; they must be replaced by validated
 provider feeds before being described as live.
 
+## Connected official transit feeds
+
+The app now connects to the public KMB and Citybus JSON APIs through
+`GET /api/transit`:
+
+- `GET /api/transit?operator=KMB` - KMB route catalogue.
+- `GET /api/transit?operator=CTB` - Citybus route catalogue.
+- `GET /api/transit?operator=KMB&stop=<stop_id>&route=<route>` - KMB live ETA.
+- `GET /api/transit?operator=CTB&stop=<stop_id>&route=<route>` - Citybus live ETA.
+
+These endpoints return `502` when the upstream provider is unavailable and do
+not silently turn an outage into fake live data. The existing demo route cards
+remain a separate scored sample until origin/destination geocoding and a
+provider-backed route search are implemented.
+
 ## Data sources and attribution
 
 This project is an independent prototype. It credits the Hong Kong Transport

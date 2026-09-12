@@ -41,6 +41,8 @@ The app now connects to the public KMB and Citybus JSON APIs through
 
 - `GET /api/transit?operator=KMB` - KMB route catalogue.
 - `GET /api/transit?operator=CTB` - Citybus route catalogue.
+- `GET /api/transit?operator=KMB&resource=stops` - KMB official stop catalogue.
+- `GET /api/transit?operator=CTB&resource=stops` - Citybus official stop catalogue.
 - `GET /api/transit?operator=KMB&stop=<stop_id>&route=<route>` - KMB live ETA.
 - `GET /api/transit?operator=CTB&stop=<stop_id>&route=<route>` - Citybus live ETA.
 

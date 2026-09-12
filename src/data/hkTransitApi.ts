@@ -20,6 +20,14 @@ export interface CitybusRouteRecord {
   dest_tc: string;
 }
 
+export interface TransitStopRecord {
+  stop: string;
+  name_tc: string;
+  name_en: string;
+  lat: number;
+  long: number;
+}
+
 export interface KmbEtaRecord {
   route: string;
   dir: string;
@@ -70,6 +78,20 @@ export async function getKmbRoutes() {
 export async function getCitybusRoutes() {
   const payload = await fetchJson<{ data: CitybusRouteRecord[] }>(
     `${HK_TRANSIT_API.citybus}/route/ctb`,
+  );
+  return payload.data;
+}
+
+export async function getKmbStops() {
+  const payload = await fetchJson<{ data: TransitStopRecord[] }>(
+    `${HK_TRANSIT_API.kmb}/stop/`,
+  );
+  return payload.data;
+}
+
+export async function getCitybusStops() {
+  const payload = await fetchJson<{ data: TransitStopRecord[] }>(
+    `${HK_TRANSIT_API.citybus}/stop/ctb`,
   );
   return payload.data;
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { PlaceAutocomplete, type PlaceResult } from './PlaceAutocomplete';
 
 const savedPlaces = [
   { id: 'home', label: '屋企', address: 'Jordan' },
@@ -16,6 +17,8 @@ export function CalendarAndPlaces() {
   const [origin, setOrigin] = useState('Jordan');
   const [destination, setDestination] = useState('Tsim Sha Tsui');
   const [selectedPlace, setSelectedPlace] = useState('work');
+  const [originPlace, setOriginPlace] = useState<PlaceResult | null>(null);
+  const [destinationPlace, setDestinationPlace] = useState<PlaceResult | null>(null);
 
   const calendarUrl = useMemo(() => {
     const start = new Date();
@@ -25,10 +28,10 @@ export function CalendarAndPlaces() {
     end.setMinutes(end.getMinutes() + 45);
     const params = new URLSearchParams({
       action: 'TEMPLATE',
-      text: `KMB 行程：${origin} → ${destination}`,
+      text: `香港交通行程：${origin} → ${destination}`,
       dates: `${toCalendarDate(start)}/${toCalendarDate(end)}`,
       location: destination,
-      details: '由 KMB Monthly Pass Mapper 建立的行程提醒。',
+      details: '由 Transit Compass HK 建立的行程提醒。',
     });
     return `https://calendar.google.com/calendar/render?${params.toString()}`;
   }, [destination, origin]);
@@ -73,24 +76,35 @@ export function CalendarAndPlaces() {
       </div>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
-        <label className="text-xs font-semibold text-slate-500">
-          起點
-          <input
-            className="mt-1 w-full rounded-xl border-0 bg-slate-50 px-3 py-2 text-sm text-slate-800 ring-1 ring-slate-200"
-            onChange={(event) => setOrigin(event.target.value)}
-            value={origin}
-          />
-        </label>
-        <label className="text-xs font-semibold text-slate-500">
-          終點
-          <input
-            className="mt-1 w-full rounded-xl border-0 bg-slate-50 px-3 py-2 text-sm text-slate-800 ring-1 ring-slate-200"
-            onChange={(event) => setDestination(event.target.value)}
-            value={destination}
-          />
-        </label>
+        <PlaceAutocomplete
+          colorClass="bg-[#2e8b57]"
+          label="起點"
+          onChange={(value) => {
+            setOrigin(value);
+            setOriginPlace(null);
+          }}
+          onSelect={setOriginPlace}
+          value={origin}
+        />
+        <PlaceAutocomplete
+          colorClass="bg-orange-500"
+          label="終點"
+          onChange={(value) => {
+            setDestination(value);
+            setDestinationPlace(null);
+          }}
+          onSelect={setDestinationPlace}
+          value={destination}
+        />
       </div>
 
+      {(originPlace || destinationPlace) && (
+        <div className="mt-3 rounded-xl bg-green-50 px-3 py-2 text-xs text-slate-600">
+          {originPlace && `起點座標：${originPlace.lat.toFixed(5)}, ${originPlace.lng.toFixed(5)}`}
+          {originPlace && destinationPlace && ' · '}
+          {destinationPlace && `終點座標：${destinationPlace.lat.toFixed(5)}, ${destinationPlace.lng.toFixed(5)}`}
+        </div>
+      )}
       <a
         className="mt-4 flex items-center justify-center rounded-2xl bg-[#2e8b57] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#176b2c]"
         href={calendarUrl}
@@ -99,6 +113,21 @@ export function CalendarAndPlaces() {
       >
         加入 Google Calendar（明日 08:00）
       </a>
+      {(originPlace || destinationPlace) && (
+        <div className="mt-2 flex gap-2">
+          {[originPlace, destinationPlace].filter((place): place is PlaceResult => Boolean(place)).map((place) => (
+            <a
+              className="flex-1 rounded-xl bg-slate-100 px-3 py-2 text-center text-xs font-semibold text-slate-700 hover:bg-slate-200"
+              href={place.googleMapsUrl}
+              key={place.id}
+              rel="noreferrer"
+              target="_blank"
+            >
+              在 Google Maps 開啟{place.name}
+            </a>
+          ))}
+        </div>
+      )}
       <p className="mt-2 text-center text-xs text-slate-500">
         會預填起點、終點、地點和下一個工作日行程。
       </p>

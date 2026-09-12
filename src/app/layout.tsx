@@ -2,7 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'KMB Route Mapper',
+  title: 'Transit Compass HK',
   description: '香港多模式公共交通路線規劃器，整合官方交通資料來源。',
 };
 

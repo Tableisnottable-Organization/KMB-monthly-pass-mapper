@@ -163,9 +163,9 @@ export default function Home() {
             </div>
             <div>
               <p className="text-xs uppercase tracking-[0.25em] text-green-100">
-                Monthly Pass Mapper
+                月票路線規劃器
               </p>
-              <h1 className="text-xl font-bold">KMB Journey Map</h1>
+              <h1 className="text-xl font-bold">九巴出行地圖</h1>
             </div>
           </div>
 
@@ -173,13 +173,13 @@ export default function Home() {
             <a className="hidden rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold hover:bg-white/20 sm:inline-flex" href="/updates">路線更新</a>
             <a className="hidden rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold hover:bg-white/20 sm:inline-flex" href="/traffic">交通事件</a>
             <a className="rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold hover:bg-white/20" href="/en">
-              English
+              English 版
             </a>
             <button className="hidden rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold hover:bg-white/20 sm:block">
-              Saved places
+              已儲存地點
             </button>
             <button className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-[#176b2c] shadow-sm">
-              Find me
+              定位我
             </button>
           </div>
           </div>
@@ -189,8 +189,8 @@ export default function Home() {
         <section className="mb-5 rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-[#176b2c]/15">
           <div className="mb-3 flex items-center justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#176b2c]">Get me somewhere</p>
-              <p className="mt-1 text-sm text-slate-500">Plan around your KMB Monthly Pass</p>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#176b2c]">帶我去目的地</p>
+              <p className="mt-1 text-sm text-slate-500">以九巴月票規劃行程</p>
             </div>
             <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-[#176b2c]">Hong Kong</span>
           </div>
@@ -198,7 +198,7 @@ export default function Home() {
             <div className="flex flex-1 items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200">
               <span className="flex h-3 w-3 rounded-full bg-[#2e8b57]" />
               <div>
-                <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400">From</div>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400">起點</div>
                 <div className="text-base font-medium">Jordan</div>
               </div>
             </div>
@@ -213,7 +213,7 @@ export default function Home() {
             <div className="flex flex-1 items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200">
               <span className="flex h-3 w-3 rounded-full bg-orange-500" />
               <div>
-                <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400">To</div>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400">目的地</div>
                 <div className="text-base font-medium">Tsim Sha Tsui</div>
               </div>
             </div>
@@ -224,11 +224,11 @@ export default function Home() {
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
-            {['Bus only', 'KMB pass', 'Fastest', 'Cheapest', 'Live ETA'].map((chip) => (
+            {['只乘巴士', '九巴月票', '最快', '最平', '即時到站'].map((chip) => (
               <button
                 key={chip}
                 className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
-                  chip === 'Fastest'
+                  chip === '最快'
                     ? 'bg-[#176b2c] text-white'
                     : 'bg-green-50 text-[#176b2c] hover:bg-green-100'
                 }`}
@@ -241,10 +241,10 @@ export default function Home() {
 
         <div className="mb-5 grid grid-cols-2 gap-2 rounded-2xl bg-white/80 p-2 shadow-sm ring-1 ring-[#176b2c]/10 sm:grid-cols-4">
           {[
-            ['🚌', 'Bus', 'KMB first'],
-            ['🚶', 'Walk', 'Nearby stops'],
-            ['🚇', 'MTR', 'Compare fares'],
-            ['⛴', 'Ferry', 'Coming soon'],
+            ['🚌', '巴士', '優先九巴'],
+            ['🚶', '步行', '附近車站'],
+            ['🚇', '港鐵', '比較車費'],
+            ['⛴', '渡輪', '即將推出'],
           ].map(([icon, label, caption]) => (
             <button key={label} className="rounded-xl px-3 py-3 text-left transition hover:bg-green-50">
               <div className="text-xl">{icon}</div>
@@ -264,10 +264,10 @@ export default function Home() {
               <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-green-100">
-                    Built for KMB Monthly Pass
+                  專為九巴月票用戶而設
                   </p>
                   <h2 className="mt-2 max-w-xl text-2xl font-bold">
-                    Make every KMB ride count.
+                    令每程九巴都物有所值
                   </h2>
                   <p className="mt-2 max-w-xl text-sm leading-6 text-green-50">
                     This route uses {bestPassInsight.coveredLegCount} pass-covered leg
@@ -278,13 +278,13 @@ export default function Home() {
                 </div>
                 <div className="rounded-2xl bg-white/15 p-4 sm:min-w-44">
                   <div className="text-xs uppercase tracking-[0.15em] text-green-100">
-                    Pass price
+                    月票價格
                   </div>
                   <div className="mt-1 text-3xl font-bold">
                     HK$ {bestPassInsight.passPrice}
                   </div>
                   <div className="mt-1 text-xs text-green-100">
-                    Break-even: {bestPassInsight.breakEvenTrips} trips
+                    回本：{bestPassInsight.breakEvenTrips} 程
                   </div>
                 </div>
               </div>
@@ -292,12 +292,12 @@ export default function Home() {
 
             <div className="flex items-center justify-between rounded-[24px] bg-white px-5 py-4 shadow-soft ring-1 ring-slate-200">
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Recommended</p>
-                <h2 className="text-2xl font-semibold text-slate-900">{bestRoute.legs.length > 1 ? 'Best route' : 'Direct route'}</h2>
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">推薦路線</p>
+                <h2 className="text-2xl font-semibold text-slate-900">{bestRoute.legs.length > 1 ? '最佳路線' : '直達路線'}</h2>
               </div>
               <div className="text-right">
                 <div className="text-3xl font-bold text-slate-900">{bestRoute.legs.reduce((total, leg) => total + leg.journeyTimeMinutes, 0) + bestRoute.walkTransferTimeMinutes} min</div>
-                <div className="text-sm text-slate-500">{bestRoute.transferCount} transfer{bestRoute.transferCount === 1 ? '' : 's'}</div>
+                <div className="text-sm text-slate-500">{bestRoute.transferCount} 次轉乘</div>
               </div>
             </div>
 
@@ -318,7 +318,7 @@ export default function Home() {
                     <div className="flex items-center gap-3">
                       {isBest && (
                         <span className="rounded-full bg-sky-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white">
-                          Best
+                          推薦
                         </span>
                       )}
                       <div>
@@ -328,7 +328,7 @@ export default function Home() {
                     </div>
 
                     <div className="text-right">
-                      <div className="text-sm font-medium text-slate-600">Score</div>
+                      <div className="text-sm font-medium text-slate-600">評分</div>
                       <div className="text-2xl font-bold text-slate-900">{route.finalScore.toFixed(2)}</div>
                     </div>
                   </div>
@@ -344,7 +344,7 @@ export default function Home() {
                         <div className="flex-1">
                           <div className="flex items-center justify-between gap-2">
                             <div className="font-semibold text-slate-900">{leg.routeNumber}</div>
-                            <div className="text-sm text-slate-500">{leg.mode}</div>
+                            <div className="text-sm text-slate-500">{leg.mode === 'SUBWAY' ? '港鐵' : leg.mode === 'BUS' ? '巴士' : leg.mode === 'WALK' ? '步行' : '渡輪'}</div>
                           </div>
                           <div className="mt-1 text-sm text-slate-600">
                             {leg.originStop.name} → {leg.destinationStop.name}
@@ -365,9 +365,9 @@ export default function Home() {
                       <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">
                         HK$ {route.discountedFare.toFixed(2)}
                       </span>
-                      <span className="text-slate-500">BBI {route.bbiDiscountApplied.toFixed(2)} off</span>
+                      <span className="text-slate-500">轉乘優惠減 HK$ {route.bbiDiscountApplied.toFixed(2)}</span>
                     </div>
-                    <div className="font-medium text-slate-800">Walk {route.walkTransferTimeMinutes} min</div>
+                    <div className="font-medium text-slate-800">步行 {route.walkTransferTimeMinutes} 分鐘</div>
                   </div>
                   {routeAlerts.length > 0 && (
                     <div className="mt-3 rounded-2xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-900">
@@ -384,11 +384,11 @@ export default function Home() {
                       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-orange-50 px-3 py-2 text-xs text-orange-800">
                         <span className="font-semibold">
                           {passInsight.isFullyCovered
-                            ? 'Fully covered by KMB Monthly Pass'
-                            : `${passInsight.coveredLegCount} pass-covered leg${passInsight.coveredLegCount === 1 ? '' : 's'}`}
+                            ? '九巴月票全程涵蓋'
+                            : `${passInsight.coveredLegCount} 段月票涵蓋路程`}
                         </span>
                         <span>
-                          Save HK$ {passInsight.savingThisTrip.toFixed(2)} on this trip
+                          本程節省 HK$ {passInsight.savingThisTrip.toFixed(2)}
                         </span>
                       </div>
                     );
@@ -407,8 +407,8 @@ export default function Home() {
             <div id="map" className="overflow-hidden rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-[#176b2c]/15">
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Map</p>
-                  <h3 className="text-xl font-semibold">Live network</h3>
+                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">地圖</p>
+                  <h3 className="text-xl font-semibold">交通網絡</h3>
                 </div>
                 <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
                   排班資料
@@ -422,28 +422,28 @@ export default function Home() {
             </div>
 
             <div className="rounded-[28px] bg-[#176b2c] p-5 text-white shadow-soft">
-              <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Trip summary</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-300">行程摘要</p>
               <div className="mt-4 space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-300">Total time</span>
+                  <span className="text-slate-300">總時間</span>
                   <strong>{formatDuration(bestRoute.legs.reduce((total, leg) => total + leg.journeyTimeMinutes, 0) + bestRoute.walkTransferTimeMinutes)}</strong>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-300">Best price</span>
+                  <span className="text-slate-300">最低車費</span>
                   <strong>HK$ {bestRoute.discountedFare.toFixed(2)}</strong>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-300">Pass saving</span>
+                  <span className="text-slate-300">月票節省</span>
                   <strong className="text-orange-300">
                     HK$ {bestPassInsight.savingThisTrip.toFixed(2)}
                   </strong>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-300">Scheduled headway</span>
+                  <span className="text-slate-300">班次間隔</span>
                   <strong>{bestRoute.legs[0].scheduledIntervalMinutes} min</strong>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-300">Operator mix</span>
+                  <span className="text-slate-300">營辦商組合</span>
                   <strong>{bestRoute.legs.map((leg) => leg.operator).join(' + ')}</strong>
                 </div>
               </div>
@@ -451,17 +451,17 @@ export default function Home() {
             <div className="rounded-[28px] bg-white p-5 shadow-soft ring-1 ring-[#176b2c]/15">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#176b2c]">Quick access</p>
-                  <h3 className="mt-1 text-xl font-bold">Your places</h3>
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#176b2c]">快速入口</p>
+                  <h3 className="mt-1 text-xl font-bold">我的地點</h3>
                 </div>
-                <button className="text-sm font-semibold text-[#2e8b57]">Edit</button>
+                <button className="text-sm font-semibold text-[#2e8b57]">編輯</button>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-2">
                 {[
-                  ['★', 'Home', 'Add address'],
-                  ['▣', 'Work', 'Add address'],
-                  ['⌖', 'Nearest stop', 'Use GPS'],
-                  ['↺', 'Recent trip', 'Jordan → TST'],
+                  ['★', '屋企', '新增地址'],
+                  ['▣', '返工', '新增地址'],
+                  ['⌖', '最近車站', '使用 GPS'],
+                  ['↺', '最近行程', '佐敦 → 尖沙咀'],
                 ].map(([icon, label, caption]) => (
                   <button key={label} className="rounded-2xl bg-green-50 p-3 text-left hover:bg-green-100">
                     <div className="text-lg text-[#176b2c]">{icon}</div>

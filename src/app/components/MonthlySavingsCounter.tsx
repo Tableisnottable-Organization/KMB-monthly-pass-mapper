@@ -88,13 +88,13 @@ export function MonthlySavingsCounter({
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-            Monthly pass tracker
+            月票節省追蹤
           </p>
           <h2 className="mt-1 text-2xl font-bold text-slate-900">
-            How much have you saved?
+            今個月慳咗幾多？
           </h2>
           <p className="mt-1 text-sm text-slate-500">
-            Count your KMB rides this month to see your real pass value.
+            輸入今個月九巴乘搭次數，查看月票實際價值。
           </p>
         </div>
 
@@ -107,11 +107,11 @@ export function MonthlySavingsCounter({
             }
             value={passType}
           >
-            <option value="NORMAL">Normal pass</option>
-            <option value="STUDENT">Student pass</option>
+            <option value="NORMAL">普通月票</option>
+            <option value="STUDENT">學生月票</option>
           </select>
           <label className="flex items-center gap-2 rounded-2xl bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
-            <span className="text-sm font-medium text-slate-600">Trips</span>
+            <span className="text-sm font-medium text-slate-600">乘搭</span>
             <input
               aria-label="KMB trips this month"
               className="w-16 rounded-xl border-0 bg-white px-2 py-1 text-center text-lg font-bold text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-orange-400"
@@ -130,7 +130,7 @@ export function MonthlySavingsCounter({
 
       <div className="mt-4 flex flex-col gap-3 rounded-2xl bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
         <label className="flex items-center gap-2 text-sm text-slate-600">
-          <span className="font-medium">Pass started</span>
+          <span className="font-medium">月票開始日期</span>
           <input
             aria-label="Monthly pass start date"
             className="rounded-lg border-0 bg-white px-2 py-1.5 text-sm ring-1 ring-slate-200"
@@ -149,7 +149,7 @@ export function MonthlySavingsCounter({
           onClick={findNearestStop}
           type="button"
         >
-          {locationStatus}
+          {locationStatus === 'Find nearest stop' ? '尋找最近車站' : locationStatus}
         </button>
       </div>
       {nearestStop && (
@@ -161,19 +161,19 @@ export function MonthlySavingsCounter({
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         <div className="rounded-2xl bg-orange-50 p-4">
           <div className="text-xs font-medium uppercase tracking-[0.12em] text-orange-700">
-            Net saved
+            淨節省
           </div>
           <div className="mt-1 text-2xl font-bold text-orange-900">
             HK$ {Math.max(0, totals.netSaving).toFixed(2)}
           </div>
           <div className="mt-1 text-xs text-orange-700">
-            after HK$ {selectedPassPrice} {passType === 'STUDENT' ? 'student' : 'normal'} pass cost
+            扣除 HK$ {selectedPassPrice}{passType === 'STUDENT' ? '學生' : '普通'}月票成本
           </div>
         </div>
 
         <div className="rounded-2xl bg-emerald-50 p-4">
           <div className="text-xs font-medium uppercase tracking-[0.12em] text-emerald-700">
-            Covered fares
+            已涵蓋車費
           </div>
           <div className="mt-1 text-2xl font-bold text-emerald-900">
             HK$ {totals.coveredFare.toFixed(2)}
@@ -185,15 +185,15 @@ export function MonthlySavingsCounter({
 
         <div className="rounded-2xl bg-blue-50 p-4">
           <div className="text-xs font-medium uppercase tracking-[0.12em] text-blue-700">
-            Break-even
+            回本進度
           </div>
           <div className="mt-1 text-2xl font-bold text-blue-900">
             {totals.tripsRemaining === 0 ? 'Reached' : `${totals.tripsRemaining} trips`}
           </div>
           <div className="mt-1 text-xs text-blue-700">
             {totals.tripsRemaining === 0
-              ? 'Your pass has paid for itself'
-              : `until ${totals.selectedBreakEvenTrips} total trips`}
+              ? '月票已經回本'
+              : `共需 ${totals.selectedBreakEvenTrips} 程`}
           </div>
         </div>
       </div>

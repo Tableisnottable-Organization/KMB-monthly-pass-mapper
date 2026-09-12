@@ -25,10 +25,10 @@ export function CalendarAndPlaces() {
     end.setMinutes(end.getMinutes() + 45);
     const params = new URLSearchParams({
       action: 'TEMPLATE',
-      text: `KMB 行程：${origin} → ${destination}`,
+      text: `香港交通行程：${origin} → ${destination}`,
       dates: `${toCalendarDate(start)}/${toCalendarDate(end)}`,
       location: destination,
-      details: '由 KMB Monthly Pass Mapper 建立的行程提醒。',
+      details: '由 Transit Compass HK 建立的行程提醒。',
     });
     return `https://calendar.google.com/calendar/render?${params.toString()}`;
   }, [destination, origin]);

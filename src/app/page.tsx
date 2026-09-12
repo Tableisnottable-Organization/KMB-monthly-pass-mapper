@@ -159,14 +159,19 @@ export default function Home() {
         <header className="border-b border-[#176b2c]/20 bg-[#176b2c] text-white">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-lg font-black text-[#176b2c] shadow-lg">
-              KMB
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#176b2c] shadow-lg" aria-label="Transit Compass HK">
+              <svg aria-hidden="true" className="h-7 w-7" viewBox="0 0 32 32" fill="none">
+                <path d="M8 23.5 12.5 9h7L24 23.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="8" cy="23.5" r="3" fill="#f97316" />
+                <circle cx="24" cy="23.5" r="3" fill="#2e8b57" />
+                <circle cx="16" cy="9" r="3" fill="#176b2c" />
+              </svg>
             </div>
             <div>
               <p className="text-xs uppercase tracking-[0.25em] text-green-100">
-                月票路線規劃器
+                Transit Compass HK
               </p>
-              <h1 className="text-xl font-bold">九巴出行地圖</h1>
+              <h1 className="text-xl font-bold">香港出行地圖</h1>
             </div>
           </div>
 
@@ -191,7 +196,7 @@ export default function Home() {
           <div className="mb-3 flex items-center justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#176b2c]">帶我去目的地</p>
-              <p className="mt-1 text-sm text-slate-500">以九巴月票規劃行程</p>
+              <p className="mt-1 text-sm text-slate-500">比較巴士、港鐵及步行路線，計算月票價值</p>
             </div>
             <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-[#176b2c]">Hong Kong</span>
           </div>

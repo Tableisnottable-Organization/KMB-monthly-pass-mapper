@@ -10,8 +10,8 @@ export default function EnglishHome() {
           </p>
           <h1 className="mt-2 text-3xl font-bold">Hong Kong journey planner</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-green-50">
-            Compare bus, MTR, Citybus and walking options with monthly pass
-            savings, service updates and traffic event notices.
+            Compare public transport and walking options by time, fare and
+            service status, without promoting any single operator.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Link className="rounded-xl bg-white px-4 py-2 text-sm font-bold text-[#176b2c]" href="/">

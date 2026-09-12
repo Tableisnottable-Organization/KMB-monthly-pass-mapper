@@ -1,4 +1,9 @@
-# KMB Monthly Pass Mapper
+# Transit Compass HK
+
+Transit Compass HK is an independent, operator-neutral Hong Kong journey
+planning prototype. Transport operators are shown only as data and service
+metadata; no operator logo, operator identity, or operator product is used as
+the product brand or sales message.
 
 ## API
 

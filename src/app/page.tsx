@@ -196,7 +196,7 @@ export default function Home() {
         <JourneyPlaceSearch />
         <section id="live-search" className="mb-5 rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-[#176b2c]/15">
           <div className="mb-4 flex flex-wrap gap-2">
-            {['只乘巴士', '九巴月票', '最快', '最平', '即時到站'].map((chip) => (
+            {['多模式交通', '附近站點', '最快', '最平', '即時到站'].map((chip) => (
               <span className="rounded-full bg-green-50 px-3 py-1.5 text-sm font-medium text-[#176b2c]" key={chip}>{chip}</span>
             ))}
           </div>
@@ -205,7 +205,7 @@ export default function Home() {
 
         <div className="mb-5 grid grid-cols-2 gap-2 rounded-2xl bg-white/80 p-2 shadow-sm ring-1 ring-[#176b2c]/10 sm:grid-cols-4">
           {[
-            ['🚌', '巴士', '優先九巴'],
+            ['🚌', '巴士', '按資料比較'],
             ['🚶', '步行', '附近車站'],
             ['🚇', '港鐵', '比較車費'],
             ['⛴', '渡輪', '即將推出'],
@@ -228,10 +228,10 @@ export default function Home() {
               <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-green-100">
-                  專為九巴月票用戶而設
+                  交通票價分析
                   </p>
                   <h2 className="mt-2 max-w-xl text-2xl font-bold">
-                    令每程九巴都物有所值
+                    比較不同交通選項的實際成本
                   </h2>
                   <p className="mt-2 max-w-xl text-sm leading-6 text-green-50">
                     This route uses {bestPassInsight.coveredLegCount} pass-covered leg
@@ -348,8 +348,8 @@ export default function Home() {
                       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-orange-50 px-3 py-2 text-xs text-orange-800">
                         <span className="font-semibold">
                           {passInsight.isFullyCovered
-                            ? '九巴月票全程涵蓋'
-                            : `${passInsight.coveredLegCount} 段月票涵蓋路程`}
+                            ? '參考通票全程涵蓋'
+                            : `${passInsight.coveredLegCount} 段通票涵蓋路程`}
                         </span>
                         <span>
                           本程節省 HK$ {passInsight.savingThisTrip.toFixed(2)}

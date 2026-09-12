@@ -88,13 +88,13 @@ export function MonthlySavingsCounter({
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-            月票節省追蹤
+            通票成本分析
           </p>
           <h2 className="mt-1 text-2xl font-bold text-slate-900">
-            今個月慳咗幾多？
+            今個月交通成本
           </h2>
           <p className="mt-1 text-sm text-slate-500">
-            輸入今個月九巴乘搭次數，查看月票實際價值。
+            輸入乘搭次數，估算通票與逐程付費的差額；結果只作個人規劃參考。
           </p>
         </div>
 
@@ -113,7 +113,7 @@ export function MonthlySavingsCounter({
           <label className="flex items-center gap-2 rounded-2xl bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
             <span className="text-sm font-medium text-slate-600">乘搭</span>
             <input
-              aria-label="KMB trips this month"
+              aria-label="Transit trips this month"
               className="w-16 rounded-xl border-0 bg-white px-2 py-1 text-center text-lg font-bold text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-orange-400"
               min="0"
               onChange={(event) =>
@@ -167,7 +167,7 @@ export function MonthlySavingsCounter({
             HK$ {Math.max(0, totals.netSaving).toFixed(2)}
           </div>
           <div className="mt-1 text-xs text-orange-700">
-            扣除 HK$ {selectedPassPrice}{passType === 'STUDENT' ? '學生' : '普通'}月票成本
+            扣除 HK$ {selectedPassPrice} 參考通票成本
           </div>
         </div>
 

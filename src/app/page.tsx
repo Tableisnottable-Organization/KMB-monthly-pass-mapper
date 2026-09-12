@@ -6,6 +6,7 @@ import { TrafficHeatmap } from './components/TrafficHeatmap';
 import { GoogleMapPanel } from './components/GoogleMapPanel';
 import { getTrafficSourceCatalog } from '../data/hkTrafficSources';
 import { getAlertsForRoutes } from '../data/trafficAlerts';
+import { LiveTransitSearch } from './components/LiveTransitSearch';
 
 const stop = (
   id: string,
@@ -218,9 +219,12 @@ export default function Home() {
               </div>
             </div>
 
-            <button className="rounded-2xl bg-[#2e8b57] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#176b2c]">
-              GO
-            </button>
+            <a
+              className="rounded-2xl bg-[#2e8b57] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#176b2c]"
+              href="#live-search"
+            >
+              搜尋
+            </a>
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
@@ -236,6 +240,9 @@ export default function Home() {
                 {chip}
               </button>
             ))}
+          </div>
+          <div id="live-search">
+            <LiveTransitSearch />
           </div>
         </section>
 

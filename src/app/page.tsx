@@ -154,31 +154,45 @@ function formatDuration(minutes: number) {
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-slate-100 text-slate-900">
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <header className="mb-6 flex items-center justify-between rounded-[28px] bg-slate-950 px-5 py-4 text-white shadow-soft">
+    <main className="min-h-screen bg-[#eef7ed] text-slate-900">
+      <div className="min-h-screen bg-[linear-gradient(135deg,#eef7ed_0%,#d9f0d5_45%,#f7fbf5_100%)]">
+        <header className="border-b border-[#176b2c]/20 bg-[#176b2c] text-white">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-lg font-bold">
-              K
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-lg font-black text-[#176b2c] shadow-lg">
+              KMB
             </div>
             <div>
-              <p className="text-xs uppercase tracking-[0.25em] text-slate-300">
-                Route Planner
+              <p className="text-xs uppercase tracking-[0.25em] text-green-100">
+                Monthly Pass Mapper
               </p>
-              <h1 className="text-xl font-semibold">KMB Journey Map</h1>
+              <h1 className="text-xl font-bold">KMB Journey Map</h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200">
-            <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-400" />
-            Live status
+          <div className="flex items-center gap-2">
+            <button className="hidden rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold hover:bg-white/20 sm:block">
+              Saved places
+            </button>
+            <button className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-[#176b2c] shadow-sm">
+              Find me
+            </button>
+          </div>
           </div>
         </header>
 
-        <section className="mb-6 rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-slate-200">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+        <section className="mb-5 rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-[#176b2c]/15">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#176b2c]">Get me somewhere</p>
+              <p className="mt-1 text-sm text-slate-500">Plan around your KMB Monthly Pass</p>
+            </div>
+            <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-[#176b2c]">Hong Kong</span>
+          </div>
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="flex flex-1 items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200">
-              <span className="flex h-3 w-3 rounded-full bg-blue-500" />
+              <span className="flex h-3 w-3 rounded-full bg-[#2e8b57]" />
               <div>
                 <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400">From</div>
                 <div className="text-base font-medium">Jordan</div>
@@ -187,32 +201,32 @@ export default function Home() {
 
             <button
               aria-label="Swap trip endpoints"
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-xl text-slate-500 transition hover:border-slate-300 hover:text-slate-800"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-xl text-slate-500 transition hover:border-[#2e8b57] hover:text-[#176b2c]"
             >
               ⇅
             </button>
 
             <div className="flex flex-1 items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200">
-              <span className="flex h-3 w-3 rounded-full bg-emerald-500" />
+              <span className="flex h-3 w-3 rounded-full bg-orange-500" />
               <div>
                 <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400">To</div>
                 <div className="text-base font-medium">Tsim Sha Tsui</div>
               </div>
             </div>
 
-            <button className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
-              Search
+            <button className="rounded-2xl bg-[#2e8b57] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#176b2c]">
+              GO
             </button>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            {['Fastest', 'Cheapest', 'Fewest transfers', 'Live ETA', 'Accessible'].map((chip) => (
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
+            {['Bus only', 'KMB pass', 'Fastest', 'Cheapest', 'Live ETA'].map((chip) => (
               <button
                 key={chip}
                 className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
                   chip === 'Fastest'
-                    ? 'bg-slate-900 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-[#176b2c] text-white'
+                    : 'bg-green-50 text-[#176b2c] hover:bg-green-100'
                 }`}
               >
                 {chip}
@@ -221,22 +235,37 @@ export default function Home() {
           </div>
         </section>
 
-        <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
+        <div className="mb-5 grid grid-cols-2 gap-2 rounded-2xl bg-white/80 p-2 shadow-sm ring-1 ring-[#176b2c]/10 sm:grid-cols-4">
+          {[
+            ['🚌', 'Bus', 'KMB first'],
+            ['🚶', 'Walk', 'Nearby stops'],
+            ['🚇', 'MTR', 'Compare fares'],
+            ['⛴', 'Ferry', 'Coming soon'],
+          ].map(([icon, label, caption]) => (
+            <button key={label} className="rounded-xl px-3 py-3 text-left transition hover:bg-green-50">
+              <div className="text-xl">{icon}</div>
+              <div className="mt-1 text-sm font-bold text-slate-800">{label}</div>
+              <div className="text-[11px] text-slate-500">{caption}</div>
+            </button>
+          ))}
+        </div>
+
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,0.88fr)_minmax(360px,1.12fr)]">
           <section className="space-y-4">
             <MonthlySavingsCounter
               savingPerTrip={bestPassInsight.savingThisTrip}
             />
 
-            <div className="rounded-[28px] bg-gradient-to-br from-orange-500 to-rose-500 p-5 text-white shadow-soft">
+            <div className="rounded-[28px] bg-gradient-to-br from-[#176b2c] to-[#2e8b57] p-5 text-white shadow-soft">
               <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-100">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-green-100">
                     Built for KMB Monthly Pass
                   </p>
                   <h2 className="mt-2 max-w-xl text-2xl font-bold">
                     Make every KMB ride count.
                   </h2>
-                  <p className="mt-2 max-w-xl text-sm leading-6 text-orange-50">
+                  <p className="mt-2 max-w-xl text-sm leading-6 text-green-50">
                     This route uses {bestPassInsight.coveredLegCount} pass-covered leg
                     {bestPassInsight.coveredLegCount === 1 ? '' : 's'} and saves an
                     estimated HK$ {bestPassInsight.savingThisTrip.toFixed(2)} versus
@@ -244,13 +273,13 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="rounded-2xl bg-white/15 p-4 sm:min-w-44">
-                  <div className="text-xs uppercase tracking-[0.15em] text-orange-100">
+                  <div className="text-xs uppercase tracking-[0.15em] text-green-100">
                     Pass price
                   </div>
                   <div className="mt-1 text-3xl font-bold">
                     HK$ {bestPassInsight.passPrice}
                   </div>
-                  <div className="mt-1 text-xs text-orange-100">
+                  <div className="mt-1 text-xs text-green-100">
                     Break-even: {bestPassInsight.breakEvenTrips} trips
                   </div>
                 </div>
@@ -355,8 +384,8 @@ export default function Home() {
             })}
           </section>
 
-          <aside className="space-y-4">
-            <div className="overflow-hidden rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-slate-200">
+          <aside className="space-y-4 xl:sticky xl:top-5 xl:self-start">
+            <div className="overflow-hidden rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-[#176b2c]/15">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Map</p>
@@ -367,11 +396,14 @@ export default function Home() {
                 </span>
               </div>
 
-              <div className="relative h-[320px] overflow-hidden rounded-[22px] bg-[radial-gradient(circle_at_top,_#e2e8f0,_#f8fafc_58%,_#edf2f7)] p-4">
+              <div className="relative h-[420px] overflow-hidden rounded-[22px] bg-[#b8e3ea] p-4">
+                <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(25deg,transparent_46%,#8ac6cf_47%,#8ac6cf_49%,transparent_50%),linear-gradient(115deg,transparent_44%,#a4d2d4_45%,#a4d2d4_47%,transparent_48%)] [background-size:160px_120px,220px_160px]" />
+                <div className="absolute left-[10%] top-[12%] h-24 w-44 rotate-12 rounded-[45%] bg-[#91d3de]" />
+                <div className="absolute right-[5%] top-[45%] h-28 w-48 -rotate-12 rounded-[45%] bg-[#91d3de]" />
                 <div className="absolute left-1/2 top-1/2 h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-full border border-slate-200 bg-white/40" />
-                <div className="absolute left-1/2 top-[30%] h-[150px] w-[2px] -translate-x-1/2 bg-slate-300" />
-                <div className="absolute left-[28%] top-[55%] h-[2px] w-[52%] bg-slate-300" />
-                <div className="absolute left-[37%] top-[33%] h-[2px] w-[18%] rotate-42 transform bg-slate-300" />
+                <div className="absolute left-1/2 top-[30%] h-[150px] w-[3px] -translate-x-1/2 bg-[#176b2c]" />
+                <div className="absolute left-[28%] top-[55%] h-[3px] w-[52%] bg-[#2e8b57]" />
+                <div className="absolute left-[37%] top-[33%] h-[3px] w-[18%] rotate-42 transform bg-orange-500" />
 
                 <div className="absolute left-[29%] top-[48%] flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-lg">
                   J
@@ -382,10 +414,14 @@ export default function Home() {
                 <div className="absolute left-[52%] top-[62%] flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold text-white shadow-lg">
                   C
                 </div>
+                <div className="absolute bottom-4 left-4 rounded-xl bg-white/90 px-3 py-2 text-xs font-semibold text-slate-700 shadow">
+                  <span className="mr-2 inline-block h-2 w-2 rounded-full bg-[#2e8b57]" />
+                  KMB network view
+                </div>
               </div>
             </div>
 
-            <div className="rounded-[28px] bg-slate-950 p-5 text-white shadow-soft">
+            <div className="rounded-[28px] bg-[#176b2c] p-5 text-white shadow-soft">
               <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Trip summary</p>
               <div className="mt-4 space-y-4">
                 <div className="flex items-center justify-between">
@@ -412,8 +448,32 @@ export default function Home() {
                 </div>
               </div>
             </div>
+            <div className="rounded-[28px] bg-white p-5 shadow-soft ring-1 ring-[#176b2c]/15">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#176b2c]">Quick access</p>
+                  <h3 className="mt-1 text-xl font-bold">Your places</h3>
+                </div>
+                <button className="text-sm font-semibold text-[#2e8b57]">Edit</button>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                {[
+                  ['★', 'Home', 'Add address'],
+                  ['▣', 'Work', 'Add address'],
+                  ['⌖', 'Nearest stop', 'Use GPS'],
+                  ['↺', 'Recent trip', 'Jordan → TST'],
+                ].map(([icon, label, caption]) => (
+                  <button key={label} className="rounded-2xl bg-green-50 p-3 text-left hover:bg-green-100">
+                    <div className="text-lg text-[#176b2c]">{icon}</div>
+                    <div className="mt-1 text-sm font-bold">{label}</div>
+                    <div className="truncate text-xs text-slate-500">{caption}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
           </aside>
         </div>
+      </div>
       </div>
     </main>
   );

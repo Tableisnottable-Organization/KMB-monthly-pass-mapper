@@ -2,6 +2,7 @@ import { scoreRoutes, type RouteOption, type TransitLeg } from '../engine/Upgrad
 import { getMonthlyPassInsight } from '../domain/monthlyPass';
 import { MonthlySavingsCounter } from './components/MonthlySavingsCounter';
 import { CalendarAndPlaces } from './components/CalendarAndPlaces';
+import { getTrafficSourceCatalog } from '../data/hkTrafficSources';
 
 const stop = (
   id: string,
@@ -136,6 +137,7 @@ const scoredRoutes = scoreRoutes(routes, new Date('2026-09-13T18:25:00+08:00')).
 
 const bestRoute = scoredRoutes[0];
 const bestPassInsight = getMonthlyPassInsight(bestRoute);
+const trafficSources = getTrafficSourceCatalog();
 
 const operatorClasses: Record<string, string> = {
   KMB: 'bg-amber-100 text-amber-700',
@@ -255,7 +257,7 @@ export default function Home() {
         </div>
 
         <div className="grid gap-5 xl:grid-cols-[minmax(0,0.88fr)_minmax(360px,1.12fr)]">
-          <section className="space-y-4">
+          <section id="routes" className="space-y-4">
             <MonthlySavingsCounter
               savingPerTrip={bestPassInsight.savingThisTrip}
             />
@@ -390,7 +392,7 @@ export default function Home() {
 
           <aside className="space-y-4 xl:sticky xl:top-5 xl:self-start">
             <CalendarAndPlaces />
-            <div className="overflow-hidden rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-[#176b2c]/15">
+            <div id="map" className="overflow-hidden rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-[#176b2c]/15">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Map</p>
@@ -479,6 +481,31 @@ export default function Home() {
           </aside>
         </div>
       </div>
+
+      <footer className="mx-auto mt-6 max-w-7xl border-t border-slate-200 px-4 py-6 text-xs text-slate-500 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className="font-semibold text-slate-700">資料來源與鳴謝</p>
+            <p className="mt-1 max-w-2xl leading-5">
+              路線、ETA、交通及鐵路資料只會在接通並驗證官方 endpoint 後顯示為即時資料。
+              本網站不是政府或交通營辦商的官方網站。
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:max-w-xl">
+            {trafficSources.map((source) => (
+              <a
+                key={source.id}
+                className="underline decoration-slate-300 underline-offset-2 hover:text-[#176b2c]"
+                href={source.officialUrl}
+                rel="noreferrer"
+                target="_blank"
+              >
+                {source.provider} - {source.category}
+              </a>
+            ))}
+          </div>
+        </div>
+      </footer>
       </div>
     </main>
   );

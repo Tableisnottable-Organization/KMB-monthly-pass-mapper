@@ -44,6 +44,9 @@ export interface LegScoreBreakdown {
   journeyTimeMinutes: number;
   scheduledIntervalMinutes: number;
   realtimeEtaMinutes: number | null;
+  realtimeEtaAgeMinutes: number | null;
+  realtimeEtaUsed: boolean;
+  scheduledEtaComponent: number;
   etaComponent: number;
   operatorPenalty: number;
   total: number;
@@ -74,6 +77,11 @@ export interface ScoringEngineOptions {
   longDistanceTransferSurcharge?: number;
   longDistanceTransferDistanceKm?: number;
   transferPenaltyMinutes?: number;
+  /**
+   * Prevent stale live feeds from replacing the scheduled headway estimate.
+   * Set to null to preserve the legacy "any live value wins" behaviour.
+   */
+  realtimeEtaMaxAgeMinutes?: number | null;
 }
 
 const OPERATOR_PENALTIES: Readonly<Record<Operator, number>> = {
@@ -87,7 +95,9 @@ const DEFAULT_BBI_MAXIMUM_DISCOUNT = 4.2;
 const DEFAULT_LONG_DISTANCE_TRANSFER_SURCHARGE = 3;
 const DEFAULT_LONG_DISTANCE_TRANSFER_DISTANCE_KM = 0.75;
 const DEFAULT_TRANSFER_PENALTY_MINUTES = 8;
+const DEFAULT_REALTIME_ETA_MAX_AGE_MINUTES = 15;
 const EARTH_RADIUS_KM = 6371;
+const HONG_KONG_TIME_ZONE = 'Asia/Hong_Kong';
 
 type TimePeriod = ScoreBreakdown['timePeriod'];
 
@@ -100,6 +110,7 @@ export class UpgradedScoringEngine {
   private readonly longDistanceTransferSurcharge: number;
   private readonly longDistanceTransferDistanceKm: number;
   private readonly transferPenaltyMinutes: number;
+  private readonly realtimeEtaMaxAgeMinutes: number | null;
 
   public constructor(options: ScoringEngineOptions = {}) {
     this.bbiMaximumDiscount = this.validateNonNegative(
@@ -118,6 +129,14 @@ export class UpgradedScoringEngine {
       options.transferPenaltyMinutes ?? DEFAULT_TRANSFER_PENALTY_MINUTES,
       'transferPenaltyMinutes',
     );
+    this.realtimeEtaMaxAgeMinutes =
+      options.realtimeEtaMaxAgeMinutes === null
+        ? null
+        : this.validateNonNegative(
+            options.realtimeEtaMaxAgeMinutes ??
+              DEFAULT_REALTIME_ETA_MAX_AGE_MINUTES,
+            'realtimeEtaMaxAgeMinutes',
+          );
   }
 
   public scoreRoute(route: RouteOption, date: Date = new Date()): ScoredRoute {
@@ -125,7 +144,7 @@ export class UpgradedScoringEngine {
     this.validateDate(date);
 
     const { multiplier, period } = getSegmentMultiplier(date);
-    const legs = route.legs.map((leg) => this.scoreLeg(leg, multiplier));
+    const legs = route.legs.map((leg) => this.scoreLeg(leg, multiplier, date));
     const legSubtotal = legs.reduce((sum, leg) => sum + leg.total, 0);
     const longDistanceTransferSurcharge = this.hasLongDistanceTransfer(route)
       ? this.longDistanceTransferSurcharge
@@ -198,6 +217,7 @@ export class UpgradedScoringEngine {
   private scoreLeg(
     leg: TransitLeg,
     segmentMultiplier: number,
+    scoringDate: Date,
   ): LegScoreBreakdown {
     const journeyTimeMinutes = this.validateNonNegative(
       leg.journeyTimeMinutes,
@@ -207,10 +227,10 @@ export class UpgradedScoringEngine {
       leg.scheduledIntervalMinutes,
       `scheduledIntervalMinutes for leg ${leg.id}`,
     );
-    const realtimeEtaMinutes = this.getLiveEta(leg);
-    const etaComponent =
-      realtimeEtaMinutes ??
+    const scheduledEtaComponent =
       scheduledIntervalMinutes * 0.5 * segmentMultiplier;
+    const realtimeEta = this.getLiveEta(leg, scoringDate);
+    const etaComponent = realtimeEta.minutes ?? scheduledEtaComponent;
     const operatorPenalty = OPERATOR_PENALTIES[leg.operator];
 
     return {
@@ -220,22 +240,45 @@ export class UpgradedScoringEngine {
       mode: leg.mode,
       journeyTimeMinutes,
       scheduledIntervalMinutes,
-      realtimeEtaMinutes,
+      realtimeEtaMinutes: realtimeEta.minutes,
+      realtimeEtaAgeMinutes: realtimeEta.ageMinutes,
+      realtimeEtaUsed: realtimeEta.minutes !== null,
+      scheduledEtaComponent,
       etaComponent,
       operatorPenalty,
       total: journeyTimeMinutes + etaComponent + operatorPenalty,
     };
   }
 
-  private getLiveEta(leg: TransitLeg): number | null {
+  private getLiveEta(
+    leg: TransitLeg,
+    scoringDate: Date,
+  ): { minutes: number | null; ageMinutes: number | null } {
     if (leg.realtimeEta === null || !leg.realtimeEta.isLive) {
-      return null;
+      return { minutes: null, ageMinutes: null };
     }
 
-    return this.validateNonNegative(
+    const etaMinutes = this.validateNonNegative(
       leg.realtimeEta.etaMinutes,
       `realtime ETA for leg ${leg.id}`,
     );
+    const dataTimestamp = Date.parse(leg.realtimeEta.dataTime);
+    if (!Number.isFinite(dataTimestamp)) {
+      return { minutes: null, ageMinutes: null };
+    }
+
+    const ageMinutes = Math.max(
+      0,
+      (scoringDate.getTime() - dataTimestamp) / 60000,
+    );
+    if (
+      this.realtimeEtaMaxAgeMinutes !== null &&
+      ageMinutes > this.realtimeEtaMaxAgeMinutes
+    ) {
+      return { minutes: null, ageMinutes };
+    }
+
+    return { minutes: etaMinutes, ageMinutes };
   }
 
   private hasLongDistanceTransfer(route: RouteOption): boolean {
@@ -263,6 +306,9 @@ export class UpgradedScoringEngine {
   }
 
   private validateRoute(route: RouteOption): void {
+    if (!route || typeof route !== 'object') {
+      throw new Error('route must be an object.');
+    }
     if (!route.id.trim()) {
       throw new Error('Route id must not be empty.');
     }
@@ -275,6 +321,36 @@ export class UpgradedScoringEngine {
     if (route.legs.length === 0) {
       throw new Error('A route must contain at least one leg.');
     }
+    route.legs.forEach((leg) => this.validateLeg(leg));
+  }
+
+  private validateLeg(leg: TransitLeg): void {
+    if (!leg.id.trim() || !leg.routeNumber.trim()) {
+      throw new Error('Each leg must have a non-empty id and routeNumber.');
+    }
+    this.validateNonNegative(
+      leg.journeyTimeMinutes,
+      `journeyTimeMinutes for leg ${leg.id}`,
+    );
+    this.validateNonNegative(
+      leg.scheduledIntervalMinutes,
+      `scheduledIntervalMinutes for leg ${leg.id}`,
+    );
+    this.validateMoney(leg.fare, `fare for leg ${leg.id}`);
+    [leg.originStop, leg.destinationStop].forEach((stop) => {
+      if (
+        !stop.id.trim() ||
+        !stop.name.trim() ||
+        !Number.isFinite(stop.lat) ||
+        !Number.isFinite(stop.lng) ||
+        stop.lat < -90 ||
+        stop.lat > 90 ||
+        stop.lng < -180 ||
+        stop.lng > 180
+      ) {
+        throw new Error(`Invalid stop data for leg ${leg.id}.`);
+      }
+    });
   }
 
   private validateDate(date: Date): void {
@@ -307,7 +383,17 @@ export function getSegmentMultiplier(date: Date): {
     throw new Error('date must be a valid Date.');
   }
 
-  const minutes = date.getHours() * 60 + date.getMinutes();
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: HONG_KONG_TIME_ZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date);
+  const hour = Number(parts.find((part) => part.type === 'hour')?.value);
+  const minute = Number(
+    parts.find((part) => part.type === 'minute')?.value,
+  );
+  const minutes = hour * 60 + minute;
   if (isWithinTimeRange(minutes, 23 * 60, 24 * 60) || isWithinTimeRange(minutes, 0, 5 * 60 + 50)) {
     return { multiplier: 1.8, period: 'LATE_NIGHT' };
   }

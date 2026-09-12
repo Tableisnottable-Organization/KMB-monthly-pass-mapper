@@ -34,7 +34,7 @@ export function CalendarAndPlaces() {
   }, [destination, origin]);
 
   return (
-    <div className="rounded-[28px] bg-white p-5 shadow-soft ring-1 ring-[#176b2c]/15">
+    <div id="places" className="rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-[#176b2c]/15 sm:p-5">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#176b2c]">

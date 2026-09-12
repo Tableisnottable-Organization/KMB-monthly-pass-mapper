@@ -1,6 +1,7 @@
 import { scoreRoutes, type RouteOption, type TransitLeg } from '../engine/UpgradedScoringEngine';
 import { getMonthlyPassInsight } from '../domain/monthlyPass';
 import { MonthlySavingsCounter } from './components/MonthlySavingsCounter';
+import { CalendarAndPlaces } from './components/CalendarAndPlaces';
 
 const stop = (
   id: string,
@@ -171,6 +172,9 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-2">
+            <a className="rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold hover:bg-white/20" href="/en">
+              English
+            </a>
             <button className="hidden rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold hover:bg-white/20 sm:block">
               Saved places
             </button>
@@ -385,6 +389,7 @@ export default function Home() {
           </section>
 
           <aside className="space-y-4 xl:sticky xl:top-5 xl:self-start">
+            <CalendarAndPlaces />
             <div className="overflow-hidden rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-[#176b2c]/15">
               <div className="mb-4 flex items-center justify-between">
                 <div>

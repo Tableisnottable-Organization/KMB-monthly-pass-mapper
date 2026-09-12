@@ -11,11 +11,23 @@ interface TransitRoute {
   dest_en?: string;
 }
 
+interface TransitStop {
+  stop: string;
+  name_tc: string;
+  name_en: string;
+  lat: number;
+  long: number;
+}
+
 export function LiveTransitSearch() {
   const [from, setFrom] = useState('佐敦');
   const [to, setTo] = useState('尖沙咀');
   const [operator, setOperator] = useState<'KMB' | 'CTB'>('KMB');
   const [routes, setRoutes] = useState<TransitRoute[]>([]);
+  const [stops, setStops] = useState<TransitStop[]>([]);
+  const [selectedFrom, setSelectedFrom] = useState<TransitStop | null>(null);
+  const [selectedTo, setSelectedTo] = useState<TransitStop | null>(null);
+  const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState('輸入地點後按搜尋，讀取官方路線目錄');
 
   const filteredRoutes = useMemo(() => {
@@ -32,12 +44,32 @@ export function LiveTransitSearch() {
     });
   }, [from, routes, to]);
 
+  const matchingStops = (query: string) => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) return [];
+    return stops
+      .filter((stop) =>
+        [stop.name_tc, stop.name_en, stop.stop].join(' ').toLowerCase().includes(normalizedQuery),
+      )
+      .slice(0, 8);
+  };
+
   async function search() {
+    setLoading(true);
     setStatus('正在讀取官方路線資料...');
     try {
-      const response = await fetch(`/api/transit?operator=${operator}`, {
-        cache: 'no-store',
-      });
+      const [routeResponse, stopResponse] = await Promise.all([
+        fetch(`/api/transit?operator=${operator}&resource=routes`, {
+          cache: 'no-store',
+        }),
+        fetch(`/api/transit?operator=${operator}&resource=stops`, {
+          cache: 'no-store',
+        }),
+      ]);
+      const response = routeResponse;
+      const stopPayload = (await stopResponse.json()) as {
+        data?: TransitStop[];
+      };
       const payload = (await response.json()) as {
         data?: TransitRoute[];
         error?: string;
@@ -46,10 +78,28 @@ export function LiveTransitSearch() {
         throw new Error(payload.error ?? '官方交通 API 暫時未能使用');
       }
       setRoutes(payload.data);
-      setStatus(`已載入 ${payload.data.length} 條${operator === 'KMB' ? '九巴' : '城巴'}官方路線`);
+      setStops(stopPayload.data ?? []);
+      setSelectedFrom(null);
+      setSelectedTo(null);
+      setStatus(
+        `已載入 ${payload.data.length} 條${operator === 'KMB' ? '九巴' : '城巴'}官方路線及 ${stopPayload.data?.length ?? 0} 個站點`,
+      );
     } catch (error) {
       setRoutes([]);
+      setStops([]);
       setStatus(error instanceof Error ? error.message : '讀取官方交通 API 失敗');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function chooseStop(stop: TransitStop, target: 'from' | 'to') {
+    if (target === 'from') {
+      setFrom(stop.name_tc || stop.name_en);
+      setSelectedFrom(stop);
+    } else {
+      setTo(stop.name_tc || stop.name_en);
+      setSelectedTo(stop);
     }
   }
 
@@ -81,12 +131,50 @@ export function LiveTransitSearch() {
         </select>
         <button
           className="rounded-xl bg-[#176b2c] px-4 py-2 text-sm font-bold text-white hover:bg-[#0f5422]"
+          disabled={loading}
           onClick={search}
           type="button"
         >
-          搜尋官方路線
+          {loading ? '載入中...' : '搜尋官方路線及站點'}
         </button>
       </div>
+      <p className="mt-2 text-xs text-slate-500">
+        可輸入任意香港地點的中英文名稱；搜尋後會從官方站點目錄揀選實際站點，不需要預設清單。
+      </p>
+      {stops.length > 0 && (
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <div className="rounded-xl bg-white p-2">
+            <p className="mb-1 text-xs font-bold text-slate-600">起點站點</p>
+            {matchingStops(from).slice(0, 4).map((stop) => (
+              <button
+                className={`block w-full rounded-lg px-2 py-1 text-left text-xs hover:bg-green-50 ${
+                  selectedFrom?.stop === stop.stop ? 'bg-green-100 text-[#176b2c]' : ''
+                }`}
+                key={`from-${stop.stop}`}
+                onClick={() => chooseStop(stop, 'from')}
+                type="button"
+              >
+                {stop.name_tc} <span className="text-slate-400">{stop.name_en}</span>
+              </button>
+            ))}
+          </div>
+          <div className="rounded-xl bg-white p-2">
+            <p className="mb-1 text-xs font-bold text-slate-600">目的地站點</p>
+            {matchingStops(to).slice(0, 4).map((stop) => (
+              <button
+                className={`block w-full rounded-lg px-2 py-1 text-left text-xs hover:bg-green-50 ${
+                  selectedTo?.stop === stop.stop ? 'bg-green-100 text-[#176b2c]' : ''
+                }`}
+                key={`to-${stop.stop}`}
+                onClick={() => chooseStop(stop, 'to')}
+                type="button"
+              >
+                {stop.name_tc} <span className="text-slate-400">{stop.name_en}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <p className="mt-2 text-xs text-slate-600">{status}</p>
       {routes.length > 0 && (
         <div className="mt-3 max-h-52 space-y-2 overflow-auto">

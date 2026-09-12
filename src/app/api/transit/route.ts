@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   getCitybusEta,
   getCitybusRoutes,
+  getCitybusStops,
   getKmbEta,
   getKmbRoutes,
+  getKmbStops,
 } from '../../../data/hkTransitApi';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
@@ -42,12 +44,16 @@ export async function GET(request: NextRequest) {
   const operator = request.nextUrl.searchParams.get('operator')?.toUpperCase();
   const stop = request.nextUrl.searchParams.get('stop');
   const route = request.nextUrl.searchParams.get('route');
+  const resource = request.nextUrl.searchParams.get('resource') ?? 'routes';
 
   if (operator !== 'KMB' && operator !== 'CTB') {
     return badRequest('operator must be KMB or CTB.');
   }
   if ((stop && stop.length > 64) || (route && route.length > 32)) {
     return badRequest('stop or route is too long.');
+  }
+  if (resource !== 'routes' && resource !== 'stops') {
+    return badRequest('resource must be routes or stops.');
   }
 
   try {
@@ -63,10 +69,27 @@ export async function GET(request: NextRequest) {
     }
 
     const data =
-      operator === 'KMB' ? await getKmbRoutes() : await getCitybusRoutes();
+      resource === 'stops'
+        ? operator === 'KMB'
+          ? await getKmbStops()
+          : await getCitybusStops()
+        : operator === 'KMB'
+          ? await getKmbRoutes()
+          : await getCitybusRoutes();
     return NextResponse.json({
       data,
-      meta: { operator, source: operator === 'KMB' ? 'KMB route API' : 'Citybus route API', live: true },
+      meta: {
+        operator,
+        source:
+          resource === 'stops'
+            ? operator === 'KMB'
+              ? 'KMB stop API'
+              : 'Citybus stop API'
+            : operator === 'KMB'
+              ? 'KMB route API'
+              : 'Citybus route API',
+        live: true,
+      },
     }, { headers: { 'Cache-Control': 'public, max-age=60, s-maxage=60' } });
   } catch (error) {
     return NextResponse.json({

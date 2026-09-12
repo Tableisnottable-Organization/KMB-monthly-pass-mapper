@@ -1,4 +1,5 @@
 import { scoreRoutes, type RouteOption, type TransitLeg } from '../engine/UpgradedScoringEngine';
+import { getMonthlyPassInsight } from '../domain/monthlyPass';
 
 const stop = (
   id: string,
@@ -132,6 +133,7 @@ const scoredRoutes = scoreRoutes(routes, new Date('2026-09-13T18:25:00+08:00')).
 );
 
 const bestRoute = scoredRoutes[0];
+const bestPassInsight = getMonthlyPassInsight(bestRoute);
 
 const operatorClasses: Record<string, string> = {
   KMB: 'bg-amber-100 text-amber-700',
@@ -220,6 +222,36 @@ export default function Home() {
 
         <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
           <section className="space-y-4">
+            <div className="rounded-[28px] bg-gradient-to-br from-orange-500 to-rose-500 p-5 text-white shadow-soft">
+              <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-100">
+                    Built for KMB Monthly Pass
+                  </p>
+                  <h2 className="mt-2 max-w-xl text-2xl font-bold">
+                    Make every KMB ride count.
+                  </h2>
+                  <p className="mt-2 max-w-xl text-sm leading-6 text-orange-50">
+                    This route uses {bestPassInsight.coveredLegCount} pass-covered leg
+                    {bestPassInsight.coveredLegCount === 1 ? '' : 's'} and saves an
+                    estimated HK$ {bestPassInsight.savingThisTrip.toFixed(2)} versus
+                    paying those fares separately.
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-white/15 p-4 sm:min-w-44">
+                  <div className="text-xs uppercase tracking-[0.15em] text-orange-100">
+                    Pass price
+                  </div>
+                  <div className="mt-1 text-3xl font-bold">
+                    HK$ {bestPassInsight.passPrice}
+                  </div>
+                  <div className="mt-1 text-xs text-orange-100">
+                    Break-even: {bestPassInsight.breakEvenTrips} trips
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="flex items-center justify-between rounded-[24px] bg-white px-5 py-4 shadow-soft ring-1 ring-slate-200">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Recommended</p>
@@ -298,6 +330,21 @@ export default function Home() {
                     </div>
                     <div className="font-medium text-slate-800">Walk {route.walkTransferTimeMinutes} min</div>
                   </div>
+                  {(() => {
+                    const passInsight = getMonthlyPassInsight(route);
+                    return (
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-orange-50 px-3 py-2 text-xs text-orange-800">
+                        <span className="font-semibold">
+                          {passInsight.isFullyCovered
+                            ? 'Fully covered by KMB Monthly Pass'
+                            : `${passInsight.coveredLegCount} pass-covered leg${passInsight.coveredLegCount === 1 ? '' : 's'}`}
+                        </span>
+                        <span>
+                          Save HK$ {passInsight.savingThisTrip.toFixed(2)} on this trip
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </article>
               );
             })}
@@ -343,6 +390,12 @@ export default function Home() {
                 <div className="flex items-center justify-between">
                   <span className="text-slate-300">Best price</span>
                   <strong>HK$ {bestRoute.discountedFare.toFixed(2)}</strong>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-300">Pass saving</span>
+                  <strong className="text-orange-300">
+                    HK$ {bestPassInsight.savingThisTrip.toFixed(2)}
+                  </strong>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-300">Live ETA</span>

@@ -224,8 +224,6 @@ export default function Home() {
         <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
           <section className="space-y-4">
             <MonthlySavingsCounter
-              breakEvenTrips={bestPassInsight.breakEvenTrips}
-              passPrice={bestPassInsight.passPrice}
               savingPerTrip={bestPassInsight.savingThisTrip}
             />
 

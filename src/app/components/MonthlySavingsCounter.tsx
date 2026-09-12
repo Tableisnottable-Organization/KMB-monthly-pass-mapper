@@ -1,31 +1,87 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import {
+  KMB_MONTHLY_PASS_PRICES,
+  type MonthlyPassType,
+} from '../../domain/monthlyPass';
+import { demoRoutes } from '../../data/demoRoutes';
 
 interface MonthlySavingsCounterProps {
-  passPrice: number;
   savingPerTrip: number;
-  breakEvenTrips: number;
 }
 
 export function MonthlySavingsCounter({
-  passPrice,
   savingPerTrip,
-  breakEvenTrips,
 }: MonthlySavingsCounterProps) {
   const [tripCount, setTripCount] = useState(0);
+  const [passType, setPassType] = useState<MonthlyPassType>('NORMAL');
+  const [startDate, setStartDate] = useState('');
+  const [locationStatus, setLocationStatus] = useState('Find nearest stop');
+  const [nearestStop, setNearestStop] = useState<string | null>(null);
+  const selectedPassPrice = KMB_MONTHLY_PASS_PRICES[passType];
 
   const totals = useMemo(() => {
     const coveredFare = tripCount * savingPerTrip;
-    const netSaving = Math.max(0, coveredFare - passPrice);
-    const tripsRemaining = Math.max(0, breakEvenTrips - tripCount);
+    const selectedBreakEvenTrips = Math.ceil(
+      selectedPassPrice / Math.max(savingPerTrip, 0.01),
+    );
+    const netSaving = coveredFare - selectedPassPrice;
+    const tripsRemaining = Math.max(0, selectedBreakEvenTrips - tripCount);
+    const elapsedDays = startDate
+      ? Math.max(
+          0,
+          Math.floor(
+            (Date.now() - new Date(`${startDate}T00:00:00`).getTime()) /
+              86400000,
+          ),
+        )
+      : 0;
 
     return {
       coveredFare,
       netSaving,
       tripsRemaining,
+      selectedBreakEvenTrips,
+      elapsedDays,
     };
-  }, [breakEvenTrips, passPrice, savingPerTrip, tripCount]);
+  }, [savingPerTrip, startDate, tripCount, selectedPassPrice]);
+
+  function findNearestStop() {
+    if (!navigator.geolocation) {
+      setLocationStatus('GPS is not supported by this browser');
+      return;
+    }
+
+    setLocationStatus('Finding your location...');
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const stops = Array.from(
+          new Map(
+            demoRoutes.flatMap((route) =>
+              route.legs.flatMap((leg) => [
+                leg.originStop,
+                leg.destinationStop,
+              ]),
+            ).map((stop) => [stop.id, stop]),
+          ).values(),
+        );
+        const closest = stops.reduce((nearest, stop) => {
+          const distance = Math.hypot(
+            (stop.lat - coords.latitude) * 111,
+            (stop.lng - coords.longitude) * 102,
+          );
+          return distance < nearest.distance
+            ? { stop, distance }
+            : nearest;
+        }, { stop: stops[0], distance: Number.POSITIVE_INFINITY });
+        setNearestStop(closest.stop.name);
+        setLocationStatus('Nearest stop found');
+      },
+      () => setLocationStatus('Location permission was not granted'),
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  }
 
   return (
     <section className="rounded-[28px] bg-white p-5 shadow-soft ring-1 ring-slate-200">
@@ -42,22 +98,65 @@ export function MonthlySavingsCounter({
           </p>
         </div>
 
-        <label className="flex items-center gap-3 rounded-2xl bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
-          <span className="text-sm font-medium text-slate-600">KMB trips</span>
-          <input
-            aria-label="KMB trips this month"
-            className="w-20 rounded-xl border-0 bg-white px-3 py-2 text-center text-lg font-bold text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-orange-400"
-            min="0"
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <select
+            aria-label="Monthly pass type"
+            className="rounded-xl border-0 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200"
             onChange={(event) =>
-              setTripCount(
-                Math.max(0, Math.floor(Number(event.target.value) || 0)),
-              )
+              setPassType(event.target.value as MonthlyPassType)
             }
-            type="number"
-            value={tripCount}
-          />
-        </label>
+            value={passType}
+          >
+            <option value="NORMAL">Normal pass</option>
+            <option value="STUDENT">Student pass</option>
+          </select>
+          <label className="flex items-center gap-2 rounded-2xl bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
+            <span className="text-sm font-medium text-slate-600">Trips</span>
+            <input
+              aria-label="KMB trips this month"
+              className="w-16 rounded-xl border-0 bg-white px-2 py-1 text-center text-lg font-bold text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-orange-400"
+              min="0"
+              onChange={(event) =>
+                setTripCount(
+                  Math.max(0, Math.floor(Number(event.target.value) || 0)),
+                )
+              }
+              type="number"
+              value={tripCount}
+            />
+          </label>
+        </div>
       </div>
+
+      <div className="mt-4 flex flex-col gap-3 rounded-2xl bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
+        <label className="flex items-center gap-2 text-sm text-slate-600">
+          <span className="font-medium">Pass started</span>
+          <input
+            aria-label="Monthly pass start date"
+            className="rounded-lg border-0 bg-white px-2 py-1.5 text-sm ring-1 ring-slate-200"
+            onChange={(event) => setStartDate(event.target.value)}
+            type="date"
+            value={startDate}
+          />
+          {startDate && (
+            <span className="text-xs text-slate-400">
+              Day {totals.elapsedDays + 1}
+            </span>
+          )}
+        </label>
+        <button
+          className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+          onClick={findNearestStop}
+          type="button"
+        >
+          {locationStatus}
+        </button>
+      </div>
+      {nearestStop && (
+        <div className="mt-2 text-sm text-slate-500">
+          Nearest mapped stop: <strong className="text-slate-800">{nearestStop}</strong>
+        </div>
+      )}
 
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         <div className="rounded-2xl bg-orange-50 p-4">
@@ -65,10 +164,10 @@ export function MonthlySavingsCounter({
             Net saved
           </div>
           <div className="mt-1 text-2xl font-bold text-orange-900">
-            HK$ {totals.netSaving.toFixed(2)}
+            HK$ {Math.max(0, totals.netSaving).toFixed(2)}
           </div>
           <div className="mt-1 text-xs text-orange-700">
-            after HK$ {passPrice} pass cost
+            after HK$ {selectedPassPrice} {passType === 'STUDENT' ? 'student' : 'normal'} pass cost
           </div>
         </div>
 
@@ -94,7 +193,7 @@ export function MonthlySavingsCounter({
           <div className="mt-1 text-xs text-blue-700">
             {totals.tripsRemaining === 0
               ? 'Your pass has paid for itself'
-              : `until ${breakEvenTrips} total trips`}
+              : `until ${totals.selectedBreakEvenTrips} total trips`}
           </div>
         </div>
       </div>
@@ -103,7 +202,7 @@ export function MonthlySavingsCounter({
         <div
           className="h-full rounded-full bg-gradient-to-r from-orange-400 to-emerald-500 transition-all"
           style={{
-            width: `${Math.min(100, (tripCount / breakEvenTrips) * 100)}%`,
+            width: `${Math.min(100, (tripCount / totals.selectedBreakEvenTrips) * 100)}%`,
           }}
         />
       </div>

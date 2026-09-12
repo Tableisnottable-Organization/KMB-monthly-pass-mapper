@@ -1,8 +1,16 @@
 import type { ScoredRoute } from '../engine/UpgradedScoringEngine';
 
-export const KMB_MONTHLY_PASS_PRICE = 780;
+export type MonthlyPassType = 'NORMAL' | 'STUDENT';
+
+export const KMB_MONTHLY_PASS_PRICES: Record<MonthlyPassType, number> = {
+  NORMAL: 780,
+  STUDENT: 390,
+};
+
+export const KMB_MONTHLY_PASS_PRICE = KMB_MONTHLY_PASS_PRICES.NORMAL;
 
 export interface MonthlyPassInsight {
+  passType: MonthlyPassType;
   passPrice: number;
   coveredFare: number;
   uncoveredFare: number;
@@ -17,6 +25,7 @@ export interface MonthlyPassInsight {
 export function getMonthlyPassInsight(
   route: ScoredRoute,
   passPrice = KMB_MONTHLY_PASS_PRICE,
+  passType: MonthlyPassType = 'NORMAL',
 ): MonthlyPassInsight {
   if (!Number.isFinite(passPrice) || passPrice <= 0) {
     throw new Error('passPrice must be a finite positive number.');
@@ -29,6 +38,7 @@ export function getMonthlyPassInsight(
   const singleTripFare = route.discountedFare;
 
   return {
+    passType,
     passPrice,
     coveredFare: roundCurrency(coveredFare),
     uncoveredFare: roundCurrency(uncoveredFare),

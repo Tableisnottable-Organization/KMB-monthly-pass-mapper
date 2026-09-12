@@ -7,6 +7,7 @@ import { GoogleMapPanel } from './components/GoogleMapPanel';
 import { getTrafficSourceCatalog } from '../data/hkTrafficSources';
 import { getAlertsForRoutes } from '../data/trafficAlerts';
 import { LiveTransitSearch } from './components/LiveTransitSearch';
+import { JourneyPlaceSearch } from './components/JourneyPlaceSearch';
 
 const stop = (
   id: string,
@@ -192,63 +193,14 @@ export default function Home() {
         </header>
 
         <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
-        <section className="mb-5 rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-[#176b2c]/15">
-          <div className="mb-3 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#176b2c]">帶我去目的地</p>
-              <p className="mt-1 text-sm text-slate-500">比較巴士、港鐵及步行路線，計算月票價值</p>
-            </div>
-            <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-[#176b2c]">Hong Kong</span>
-          </div>
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-            <div className="flex flex-1 items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200">
-              <span className="flex h-3 w-3 rounded-full bg-[#2e8b57]" />
-              <div>
-                <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400">起點</div>
-                <div className="text-base font-medium">Jordan</div>
-              </div>
-            </div>
-
-            <button
-              aria-label="Swap trip endpoints"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-xl text-slate-500 transition hover:border-[#2e8b57] hover:text-[#176b2c]"
-            >
-              ⇅
-            </button>
-
-            <div className="flex flex-1 items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200">
-              <span className="flex h-3 w-3 rounded-full bg-orange-500" />
-              <div>
-                <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400">目的地</div>
-                <div className="text-base font-medium">Tsim Sha Tsui</div>
-              </div>
-            </div>
-
-            <a
-              className="rounded-2xl bg-[#2e8b57] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#176b2c]"
-              href="#live-search"
-            >
-              搜尋
-            </a>
-          </div>
-
-          <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
+        <JourneyPlaceSearch />
+        <section id="live-search" className="mb-5 rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-[#176b2c]/15">
+          <div className="mb-4 flex flex-wrap gap-2">
             {['只乘巴士', '九巴月票', '最快', '最平', '即時到站'].map((chip) => (
-              <button
-                key={chip}
-                className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
-                  chip === '最快'
-                    ? 'bg-[#176b2c] text-white'
-                    : 'bg-green-50 text-[#176b2c] hover:bg-green-100'
-                }`}
-              >
-                {chip}
-              </button>
+              <span className="rounded-full bg-green-50 px-3 py-1.5 text-sm font-medium text-[#176b2c]" key={chip}>{chip}</span>
             ))}
           </div>
-          <div id="live-search">
-            <LiveTransitSearch />
-          </div>
+          <LiveTransitSearch />
         </section>
 
         <div className="mb-5 grid grid-cols-2 gap-2 rounded-2xl bg-white/80 p-2 shadow-sm ring-1 ring-[#176b2c]/10 sm:grid-cols-4">

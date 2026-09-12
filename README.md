@@ -74,6 +74,12 @@ Google Maps Embed requires a valid configuration/API key and may reject
 iframe requests. Follow Google's Maps Platform terms and keep the attribution
 displayed in the map panel.
 
+The homepage also provides free-text place search for Hong Kong landmarks,
+addresses, estates and shopping centres. `GET /api/places?q=<place>` proxies
+bounded Hong Kong geocoding through OpenStreetMap Nominatim, returns coordinates
+and a Google Maps search link, and does not require the user to use a saved-place
+name. Search results are cached briefly and the provider is credited in the UI.
+
 Demo routes intentionally contain no fabricated live ETA. They use scheduled
 headways until an official KMB/Citybus feed is configured and normalized. The
 ETA proxy is available for that integration, but a proxy alone does not make

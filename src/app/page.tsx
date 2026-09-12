@@ -1,5 +1,6 @@
 import { scoreRoutes, type RouteOption, type TransitLeg } from '../engine/UpgradedScoringEngine';
 import { getMonthlyPassInsight } from '../domain/monthlyPass';
+import { MonthlySavingsCounter } from './components/MonthlySavingsCounter';
 
 const stop = (
   id: string,
@@ -222,6 +223,12 @@ export default function Home() {
 
         <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
           <section className="space-y-4">
+            <MonthlySavingsCounter
+              breakEvenTrips={bestPassInsight.breakEvenTrips}
+              passPrice={bestPassInsight.passPrice}
+              savingPerTrip={bestPassInsight.savingThisTrip}
+            />
+
             <div className="rounded-[28px] bg-gradient-to-br from-orange-500 to-rose-500 p-5 text-white shadow-soft">
               <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
                 <div>

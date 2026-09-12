@@ -2,7 +2,10 @@ import { scoreRoutes, type RouteOption, type TransitLeg } from '../engine/Upgrad
 import { getMonthlyPassInsight } from '../domain/monthlyPass';
 import { MonthlySavingsCounter } from './components/MonthlySavingsCounter';
 import { CalendarAndPlaces } from './components/CalendarAndPlaces';
+import { TrafficHeatmap } from './components/TrafficHeatmap';
+import { GoogleMapPanel } from './components/GoogleMapPanel';
 import { getTrafficSourceCatalog } from '../data/hkTrafficSources';
+import { getAlertsForRoutes } from '../data/trafficAlerts';
 
 const stop = (
   id: string,
@@ -36,14 +39,7 @@ const makeLeg = (
   destinationStop: to,
   journeyTimeMinutes,
   scheduledIntervalMinutes,
-  realtimeEta: eta
-    ? {
-        etaMinutes: eta,
-        dataTime: '2026-09-13T18:25:00+08:00',
-        isLive: true,
-        source: 'DATAGOVHK',
-      }
-    : null,
+  realtimeEta: null,
   fare,
 });
 
@@ -174,6 +170,8 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-2">
+            <a className="hidden rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold hover:bg-white/20 sm:inline-flex" href="/updates">路線更新</a>
+            <a className="hidden rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold hover:bg-white/20 sm:inline-flex" href="/traffic">交通事件</a>
             <a className="rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold hover:bg-white/20" href="/en">
               English
             </a>
@@ -305,6 +303,7 @@ export default function Home() {
 
             {scoredRoutes.map((route, index) => {
               const isBest = index === 0;
+              const routeAlerts = getAlertsForRoutes(route.legs.map((leg) => leg.routeNumber));
               const totalMinutes = route.legs.reduce((total, leg) => total + leg.journeyTimeMinutes, 0) + route.walkTransferTimeMinutes;
               return (
                 <article
@@ -370,6 +369,15 @@ export default function Home() {
                     </div>
                     <div className="font-medium text-slate-800">Walk {route.walkTransferTimeMinutes} min</div>
                   </div>
+                  {routeAlerts.length > 0 && (
+                    <div className="mt-3 rounded-2xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-900">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-bold">⚠ {routeAlerts.length} 項服務／交通影響</span>
+                        <a className="font-semibold underline" href="/traffic">查看詳情</a>
+                      </div>
+                      <p className="mt-1">{routeAlerts[0].title}：{routeAlerts[0].summary}</p>
+                    </div>
+                  )}
                   {(() => {
                     const passInsight = getMonthlyPassInsight(route);
                     return (
@@ -391,6 +399,10 @@ export default function Home() {
           </section>
 
           <aside className="space-y-4 xl:sticky xl:top-5 xl:self-start">
+            <div className="grid grid-cols-2 gap-2">
+              <a className="rounded-2xl bg-white p-3 text-center text-sm font-semibold text-[#176b2c] shadow-sm ring-1 ring-[#176b2c]/15 hover:bg-green-50" href="/updates">路線更新<br /><span className="text-xs font-normal text-slate-500">公告及改道</span></a>
+              <a className="rounded-2xl bg-white p-3 text-center text-sm font-semibold text-[#176b2c] shadow-sm ring-1 ring-[#176b2c]/15 hover:bg-green-50" href="/traffic">交通事件<br /><span className="text-xs font-normal text-slate-500">事故及擠塞</span></a>
+            </div>
             <CalendarAndPlaces />
             <div id="map" className="overflow-hidden rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-[#176b2c]/15">
               <div className="mb-4 flex items-center justify-between">
@@ -398,33 +410,14 @@ export default function Home() {
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Map</p>
                   <h3 className="text-xl font-semibold">Live network</h3>
                 </div>
-                <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">
-                  3 live updates
+                <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+                  排班資料
                 </span>
               </div>
 
-              <div className="relative h-[420px] overflow-hidden rounded-[22px] bg-[#b8e3ea] p-4">
-                <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(25deg,transparent_46%,#8ac6cf_47%,#8ac6cf_49%,transparent_50%),linear-gradient(115deg,transparent_44%,#a4d2d4_45%,#a4d2d4_47%,transparent_48%)] [background-size:160px_120px,220px_160px]" />
-                <div className="absolute left-[10%] top-[12%] h-24 w-44 rotate-12 rounded-[45%] bg-[#91d3de]" />
-                <div className="absolute right-[5%] top-[45%] h-28 w-48 -rotate-12 rounded-[45%] bg-[#91d3de]" />
-                <div className="absolute left-1/2 top-1/2 h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-full border border-slate-200 bg-white/40" />
-                <div className="absolute left-1/2 top-[30%] h-[150px] w-[3px] -translate-x-1/2 bg-[#176b2c]" />
-                <div className="absolute left-[28%] top-[55%] h-[3px] w-[52%] bg-[#2e8b57]" />
-                <div className="absolute left-[37%] top-[33%] h-[3px] w-[18%] rotate-42 transform bg-orange-500" />
-
-                <div className="absolute left-[29%] top-[48%] flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-lg">
-                  J
-                </div>
-                <div className="absolute left-[67%] top-[38%] flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-[10px] font-bold text-white shadow-lg">
-                  T
-                </div>
-                <div className="absolute left-[52%] top-[62%] flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold text-white shadow-lg">
-                  C
-                </div>
-                <div className="absolute bottom-4 left-4 rounded-xl bg-white/90 px-3 py-2 text-xs font-semibold text-slate-700 shadow">
-                  <span className="mr-2 inline-block h-2 w-2 rounded-full bg-[#2e8b57]" />
-                  KMB network view
-                </div>
+              <div className="space-y-3">
+                <GoogleMapPanel />
+                <TrafficHeatmap />
               </div>
             </div>
 
@@ -446,8 +439,8 @@ export default function Home() {
                   </strong>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-300">Live ETA</span>
-                  <strong>{bestRoute.legs[0].realtimeEta?.etaMinutes ?? bestRoute.legs[0].scheduledIntervalMinutes} min</strong>
+                  <span className="text-slate-300">Scheduled headway</span>
+                  <strong>{bestRoute.legs[0].scheduledIntervalMinutes} min</strong>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-300">Operator mix</span>

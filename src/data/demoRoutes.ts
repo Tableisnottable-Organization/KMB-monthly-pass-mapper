@@ -33,12 +33,7 @@ const makeLeg = (
   destinationStop: to,
   journeyTimeMinutes,
   scheduledIntervalMinutes,
-  realtimeEta: eta === null ? null : {
-    etaMinutes: eta,
-    dataTime: '2026-09-13T18:25:00+08:00',
-    isLive: true,
-    source: 'DATAGOVHK',
-  },
+  realtimeEta: null,
   fare,
 });
 

@@ -24,6 +24,16 @@ required attribution. `AVAILABLE` means an approved source is documented; it
 does not mean every endpoint has already been normalized into route results.
 `PLANNED` sources are not presented as live data.
 
+Service updates and traffic events are available at:
+
+- `/updates` and `GET /api/updates` for route notices, temporary stop changes and timetable updates.
+- `/traffic` and `GET /api/traffic` for traffic incidents, congestion and road works.
+
+Route cards cross-reference the alert route numbers and show an affected-route
+warning when a matching notice or event exists. The current records are typed
+demo records with official-source links; they must be replaced by validated
+provider feeds before being described as live.
+
 ## Data sources and attribution
 
 This project is an independent prototype. It credits the Hong Kong Transport
@@ -36,6 +46,18 @@ The application deliberately uses an explicit upstream allowlist. Do not turn
 the ETA proxy into an arbitrary URL fetcher, and do not claim that a source is
 live until its endpoint contract, update time and error behaviour have been
 tested.
+
+## Maps and ETA status
+
+The map panel uses Google Maps Embed. Set `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_URL`
+when a project-specific Google Maps Embed configuration is available; otherwise
+the app uses a Hong Kong map fallback. Follow Google's Maps Platform terms and
+keep the attribution displayed in the map panel.
+
+Demo routes intentionally contain no fabricated live ETA. They use scheduled
+headways until an official KMB/Citybus feed is configured and normalized. The
+ETA proxy is available for that integration, but a proxy alone does not make
+the data real-time.
 
 ## Deployment
 

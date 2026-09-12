@@ -18,6 +18,25 @@ Responses are not cached because ETA data changes frequently. The proxy also
 rejects invalid hosts, enforces a five-second upstream timeout, and returns
 `502` or `504` for upstream failures.
 
+The source catalog is available at `GET /api/sources`. It lists each intended
+Hong Kong transport source, its official page, API host, connection status and
+required attribution. `AVAILABLE` means an approved source is documented; it
+does not mean every endpoint has already been normalized into route results.
+`PLANNED` sources are not presented as live data.
+
+## Data sources and attribution
+
+This project is an independent prototype. It credits the Hong Kong Transport
+Department, DATA.GOV.HK, KMB, Citybus and MTR where their data or official
+documentation is used. Provider names, logos, route content and API terms
+remain the property of their respective owners. Review each provider's
+licence and attribution requirements before production deployment.
+
+The application deliberately uses an explicit upstream allowlist. Do not turn
+the ETA proxy into an arbitrary URL fetcher, and do not claim that a source is
+live until its endpoint contract, update time and error behaviour have been
+tested.
+
 ## Deployment
 
 This project deploys as a Cloudflare Worker using OpenNext, not as a static

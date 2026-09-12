@@ -84,7 +84,7 @@ export function MonthlySavingsCounter({
   }
 
   return (
-    <section className="rounded-[28px] bg-white p-5 shadow-soft ring-1 ring-slate-200">
+    <section id="pass" className="rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-slate-200 sm:p-5">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">

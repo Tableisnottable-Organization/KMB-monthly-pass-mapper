@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getScoredDemoRoutes } from '../../../data/demoRoutes';
+import { getMonthlyPassInsight } from '../../../domain/monthlyPass';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +17,10 @@ export function GET(request: NextRequest) {
 
   const routes = getScoredDemoRoutes(date);
   return NextResponse.json({
-    data: routes,
+    data: routes.map((route) => ({
+      ...route,
+      monthlyPass: getMonthlyPassInsight(route),
+    })),
     meta: {
       count: routes.length,
       generatedAt: new Date().toISOString(),

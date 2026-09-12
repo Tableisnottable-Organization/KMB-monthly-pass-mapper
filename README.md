@@ -49,10 +49,13 @@ tested.
 
 ## Maps and ETA status
 
-The map panel uses Google Maps Embed. Set `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_URL`
-when a project-specific Google Maps Embed configuration is available; otherwise
-the app uses a Hong Kong map fallback. Follow Google's Maps Platform terms and
-keep the attribution displayed in the map panel.
+The map panel uses Google Maps when a valid project-specific Embed URL is
+configured through `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_URL`. Without that setting,
+the app uses a local visual fallback and an `api=1` Google Maps link that works
+without embedding a blocked page. Do not use a guessed `output=embed` URL:
+Google Maps Embed requires a valid configuration/API key and may reject
+iframe requests. Follow Google's Maps Platform terms and keep the attribution
+displayed in the map panel.
 
 Demo routes intentionally contain no fabricated live ETA. They use scheduled
 headways until an official KMB/Citybus feed is configured and normalized. The

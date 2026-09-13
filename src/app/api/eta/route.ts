@@ -1,5 +1,5 @@
-import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { NextRequest, NextResponse } from 'next/server';
+import { getRateLimiter } from '../../../lib/cloudflare';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,16 +11,6 @@ const ALLOWED_UPSTREAM_HOSTS = new Set([
   'data.etag.hk',
   'rt.data.gov.hk',
 ]);
-
-interface RateLimiterBinding {
-  limit(options: { key: string }): Promise<{ success: boolean }>;
-}
-
-declare global {
-  interface CloudflareEnv {
-    RATE_LIMITER?: RateLimiterBinding;
-  }
-}
 
 function errorResponse(message: string, status: number) {
   return NextResponse.json(
@@ -67,9 +57,9 @@ export async function GET(request: NextRequest) {
     request.headers.get('cf-connecting-ip') ??
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
     'unknown';
-  const { env } = await getCloudflareContext({ async: true });
-  if (env.RATE_LIMITER) {
-    const rateLimitResult = await env.RATE_LIMITER.limit({
+  const rateLimiter = await getRateLimiter();
+  if (rateLimiter) {
+    const rateLimitResult = await rateLimiter.limit({
       key: `eta:${ipAddress}`,
     });
     if (!rateLimitResult.success) {

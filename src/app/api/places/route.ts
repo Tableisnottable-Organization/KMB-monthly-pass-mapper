@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getRateLimiter } from '../../../lib/cloudflare';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,10 +12,10 @@ interface NominatimResult {
 }
 
 export async function GET(request: NextRequest) {
-  const { env } = await getCloudflareContext({ async: true });
+  const rateLimiter = await getRateLimiter();
   const ipAddress = request.headers.get('cf-connecting-ip') ?? 'unknown';
-  if (env.RATE_LIMITER) {
-    const result = await env.RATE_LIMITER.limit({ key: `places:${ipAddress}` });
+  if (rateLimiter) {
+    const result = await rateLimiter.limit({ key: `places:${ipAddress}` });
     if (!result.success) {
       return NextResponse.json({ error: 'Too many place searches.' }, { status: 429 });
     }

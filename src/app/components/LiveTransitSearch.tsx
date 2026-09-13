@@ -20,15 +20,15 @@ interface TransitStop {
 }
 
 export function LiveTransitSearch() {
-  const [from, setFrom] = useState('佐敦');
-  const [to, setTo] = useState('尖沙咀');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
   const [operator, setOperator] = useState<'KMB' | 'CTB'>('KMB');
   const [routes, setRoutes] = useState<TransitRoute[]>([]);
   const [stops, setStops] = useState<TransitStop[]>([]);
   const [selectedFrom, setSelectedFrom] = useState<TransitStop | null>(null);
   const [selectedTo, setSelectedTo] = useState<TransitStop | null>(null);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState('輸入地點後按搜尋，讀取官方路線目錄');
+  const [status, setStatus] = useState('輸入起點及目的地後按搜尋');
 
   const filteredRoutes = useMemo(() => {
     const originQuery = from.trim().toLowerCase();
@@ -110,14 +110,14 @@ export function LiveTransitSearch() {
           aria-label="起點"
           className="min-w-0 rounded-xl border-0 bg-white px-3 py-2 text-sm ring-1 ring-slate-200"
           onChange={(event) => setFrom(event.target.value)}
-          placeholder="起點，例如佐敦"
+          placeholder="輸入起點"
           value={from}
         />
         <input
           aria-label="目的地"
           className="min-w-0 rounded-xl border-0 bg-white px-3 py-2 text-sm ring-1 ring-slate-200"
           onChange={(event) => setTo(event.target.value)}
-          placeholder="目的地，例如尖沙咀"
+          placeholder="輸入目的地"
           value={to}
         />
         <select

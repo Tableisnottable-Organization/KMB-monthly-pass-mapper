@@ -7,19 +7,9 @@ import {
   getKmbRoutes,
   getKmbStops,
 } from '../../../data/hkTransitApi';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getRateLimiter } from '../../../lib/cloudflare';
 
 export const dynamic = 'force-dynamic';
-
-interface RateLimiterBinding {
-  limit(options: { key: string }): Promise<{ success: boolean }>;
-}
-
-declare global {
-  interface CloudflareEnv {
-    RATE_LIMITER?: RateLimiterBinding;
-  }
-}
 
 function badRequest(message: string) {
   return NextResponse.json({ error: message }, { status: 400 });
@@ -30,9 +20,9 @@ export async function GET(request: NextRequest) {
     request.headers.get('cf-connecting-ip') ??
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
     'unknown';
-  const { env } = await getCloudflareContext({ async: true });
-  if (env.RATE_LIMITER) {
-    const result = await env.RATE_LIMITER.limit({ key: `transit:${ipAddress}` });
+  const rateLimiter = await getRateLimiter();
+  if (rateLimiter) {
+    const result = await rateLimiter.limit({ key: `transit:${ipAddress}` });
     if (!result.success) {
       return NextResponse.json(
         { error: 'Too many transit data requests. Please try again shortly.' },

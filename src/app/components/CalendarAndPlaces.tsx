@@ -3,20 +3,16 @@
 import { useMemo, useState } from 'react';
 import { PlaceAutocomplete, type PlaceResult } from './PlaceAutocomplete';
 
-const savedPlaces = [
-  { id: 'home', label: '屋企', address: 'Jordan' },
-  { id: 'work', label: '返工', address: 'Central' },
-  { id: 'school', label: '學校', address: 'Tsim Sha Tsui' },
-];
+const savedPlaces: Array<{ id: string; label: string; address: string }> = [];
 
 function toCalendarDate(date: Date) {
   return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
 }
 
 export function CalendarAndPlaces() {
-  const [origin, setOrigin] = useState('Jordan');
-  const [destination, setDestination] = useState('Tsim Sha Tsui');
-  const [selectedPlace, setSelectedPlace] = useState('work');
+  const [origin, setOrigin] = useState('');
+  const [destination, setDestination] = useState('');
+  const [selectedPlace, setSelectedPlace] = useState('');
   const [originPlace, setOriginPlace] = useState<PlaceResult | null>(null);
   const [destinationPlace, setDestinationPlace] = useState<PlaceResult | null>(null);
 
@@ -51,7 +47,7 @@ export function CalendarAndPlaces() {
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2">
-        {savedPlaces.map((place) => (
+        {savedPlaces.length > 0 ? savedPlaces.map((place) => (
           <button
             className={`rounded-2xl p-3 text-left transition ${
               selectedPlace === place.id
@@ -72,7 +68,11 @@ export function CalendarAndPlaces() {
               {place.address}
             </div>
           </button>
-        ))}
+        )) : (
+          <p className="col-span-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-500">
+            尚未儲存地點；完成搜尋後可在此加入。
+          </p>
+        )}
       </div>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2">

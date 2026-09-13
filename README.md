@@ -1,4 +1,9 @@
-# 香港出行地圖
+# Transit Compass HK / 香港出行地圖
+
+Transit Compass HK is an independent, operator-neutral Hong Kong journey
+planning prototype. Transport operators are shown only as data and service
+metadata; no operator logo, operator identity, or operator product is used as
+the product brand or sales message.
 
 一個香港公共交通路線比較原型，協助使用者在出發前評估路線選擇、轉乘負擔、月票價值和即時到站資料風險。
 

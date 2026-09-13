@@ -1,20 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getRateLimiter } from '../../../lib/cloudflare';
 import { getScoredDemoRoutes } from '../../../data/demoRoutes';
 import { getMonthlyPassInsight } from '../../../domain/monthlyPass';
 import { HK_TRANSIT_API } from '../../../data/hkTransitApi';
 
 export const dynamic = 'force-dynamic';
-
-interface RateLimiterBinding {
-  limit(options: { key: string }): Promise<{ success: boolean }>;
-}
-
-declare global {
-  interface CloudflareEnv {
-    RATE_LIMITER?: RateLimiterBinding;
-  }
-}
 
 const MAX_DATE_QUERY_LENGTH = 64;
 
@@ -40,11 +30,9 @@ export async function GET(request: NextRequest) {
     request.headers.get('cf-connecting-ip') ??
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
     'unknown';
-  const { env } = await getCloudflareContext({
-    async: true,
-  });
-  if (env.RATE_LIMITER) {
-    const rateLimitResult = await env.RATE_LIMITER.limit({
+  const rateLimiter = await getRateLimiter();
+  if (rateLimiter) {
+    const rateLimitResult = await rateLimiter.limit({
       key: `routes:${ipAddress}`,
     });
     if (!rateLimitResult.success) {

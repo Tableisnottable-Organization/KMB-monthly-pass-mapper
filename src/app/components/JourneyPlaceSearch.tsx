@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { PlaceAutocomplete, type PlaceResult } from './PlaceAutocomplete';
 
 export function JourneyPlaceSearch() {
-  const [origin, setOrigin] = useState('Jordan');
-  const [destination, setDestination] = useState('Tsim Sha Tsui');
+  const [origin, setOrigin] = useState('');
+  const [destination, setDestination] = useState('');
   const [originPlace, setOriginPlace] = useState<PlaceResult | null>(null);
   const [destinationPlace, setDestinationPlace] = useState<PlaceResult | null>(null);
 

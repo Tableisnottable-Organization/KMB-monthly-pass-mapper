@@ -421,18 +421,9 @@ export default function Home() {
                 <button className="text-sm font-semibold text-[#2e8b57]">編輯</button>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-2">
-                {[
-                  ['★', '屋企', '新增地址'],
-                  ['▣', '返工', '新增地址'],
-                  ['⌖', '最近車站', '使用 GPS'],
-                  ['↺', '最近行程', '佐敦 → 尖沙咀'],
-                ].map(([icon, label, caption]) => (
-                  <button key={label} className="rounded-2xl bg-green-50 p-3 text-left hover:bg-green-100">
-                    <div className="text-lg text-[#176b2c]">{icon}</div>
-                    <div className="mt-1 text-sm font-bold">{label}</div>
-                    <div className="truncate text-xs text-slate-500">{caption}</div>
-                  </button>
-                ))}
+                <p className="col-span-2 rounded-2xl bg-slate-50 p-3 text-sm text-slate-500">
+                  尚未有快速入口；搜尋並選擇地點後才會顯示。
+                </p>
               </div>
             </div>
           </aside>

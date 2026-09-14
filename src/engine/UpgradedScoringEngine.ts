@@ -1,5 +1,6 @@
 ﻿export interface Segment {
   operator: 'KMB' | 'LWB' | 'MTR' | 'CTB' | string;
+  routeName: string;
   rideTimeMinutes: number;
   scheduledIntervalMinutes?: number;
   realtimeEtaMinutes?: number;
@@ -7,6 +8,7 @@
 }
 
 export interface Route {
+  id: string;
   segments: Segment[];
   walkTransferTimeMinutes?: number;
   longDistanceTransferSurcharge?: number;

@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KMB Monthly Pass Mapper</title>
+  <title>KMB & Multi-Modal Monthly Pass Mapper</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     :root {
       --cm-green: #00d06c;
@@ -13,7 +15,8 @@
       --cm-text-main: #ffffff;
       --cm-text-sub: #a0a0a0;
       --kmb-red: #e2001a;
-      --lwb-orange: #ff8000;
+      --citybus-yellow: #f39c12;
+      --mtr-red: #990000;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,137 +27,318 @@
       display: flex;
       flex-direction: column;
       height: 100vh;
+      overflow: hidden;
     }
 
-    /* Citymapper Header */
+    /* Header & Controls */
     header {
       background-color: #000;
-      padding: 16px;
+      padding: 14px 16px;
       border-bottom: 1px solid #222;
+      z-index: 1000;
     }
-    .search-box {
+    .search-container {
       background-color: var(--cm-card-bg);
-      border-radius: 12px;
-      padding: 12px 16px;
+      border-radius: 14px;
+      padding: 10px 14px;
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
-    .input-row {
+    .search-row {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
-    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .dot.start { background-color: var(--cm-green); }
-    .dot.end { background-color: var(--kmb-red); }
-    input {
+    input, select {
       background: transparent;
       border: none;
       color: #fff;
-      font-size: 16px;
+      font-size: 15px;
       width: 100%;
       outline: none;
     }
+    select {
+      background-color: #2a2a2a;
+      padding: 6px;
+      border-radius: 6px;
+      color: #fff;
+      cursor: pointer;
+    }
 
-    /* Route Cards Area */
-    .container {
+    /* Layout */
+    .main-layout {
+      display: flex;
       flex: 1;
+      height: calc(100vh - 120px);
+    }
+    .sidebar {
+      width: 380px;
+      background-color: var(--cm-dark-bg);
+      border-right: 1px solid #222;
       overflow-y: auto;
-      padding: 16px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
+    #map {
+      flex: 1;
+      height: 100%;
+      background: #000;
+    }
 
+    /* Route Cards */
     .route-card {
       background-color: var(--cm-card-bg);
-      border-radius: 16px;
-      padding: 16px;
+      border-radius: 14px;
+      padding: 14px;
       cursor: pointer;
-      transition: background 0.2s;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
     }
-    .route-card:hover { background-color: var(--cm-card-hover); }
-
+    .route-card:hover {
+      background-color: var(--cm-card-hover);
+      border-color: #333;
+    }
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
-    .duration {
-      font-size: 22px;
+    .route-title {
+      font-size: 18px;
       font-weight: 800;
       color: var(--cm-green);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     .fare-tag {
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 700;
       padding: 4px 8px;
       border-radius: 6px;
       background-color: rgba(0, 208, 108, 0.15);
       color: var(--cm-green);
     }
-
-    /* Leg-by-leg badges */
-    .route-legs {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
     .badge {
-      padding: 4px 8px;
-      border-radius: 6px;
+      padding: 3px 6px;
+      border-radius: 4px;
       font-weight: 700;
-      font-size: 14px;
+      font-size: 12px;
       color: #fff;
     }
     .badge-kmb { background-color: var(--kmb-red); }
-    .badge-lwb { background-color: var(--lwb-orange); }
-    .arrow { color: var(--cm-text-sub); font-size: 12px; }
+    .badge-ctb { background-color: var(--citybus-yellow); color: #000; }
+    .badge-mtr { background-color: var(--mtr-red); }
 
-    .pass-status {
-      margin-top: 10px;
-      font-size: 13px;
-      color: var(--cm-text-sub);
-      display: flex;
-      align-items: center;
-      gap: 6px;
+    .route-details { font-size: 13px; color: var(--cm-text-sub); margin-bottom: 6px; }
+    .eta-box {
+      background-color: #121212;
+      border-radius: 8px;
+      padding: 8px;
+      margin-top: 8px;
+      font-size: 12px;
+      color: #fff;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 768px) {
+      .main-layout { flex-direction: column-reverse; }
+      .sidebar { width: 100%; height: 50%; }
+      #map { height: 50%; }
     }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="search-box">
-      <div class="input-row">
-        <span class="dot start"></span>
-        <input type="text" placeholder="輸入起點..." value="荃威花園">
-      </div>
-      <div class="input-row" style="border-top: 1px solid #333; padding-top: 8px;">
-        <span class="dot end"></span>
-        <input type="text" placeholder="目的地..." value="尖沙咀碼頭">
+    <div class="search-container">
+      <div class="search-row">
+        <select id="operator-select">
+          <option value="KMB">九巴 / 龍運 (KMB)</option>
+          <option value="CTB">城巴 (Citybus)</option>
+          <option value="MTR">港鐵 (MTR)</option>
+        </select>
+        <input type="text" id="route-search" placeholder="輸入路線 (如 234X / A11 / TSL)" value="234X">
       </div>
     </div>
   </header>
 
-  <div class="container">
-    <div class="route-card">
-      <div class="card-header">
-        <span class="duration">42 分鐘</span>
-        <span class="fare-tag">月票 </span>
-      </div>
-      <div class="route-legs">
-        <span class="badge badge-kmb">KMB 39A</span>
-        <span class="arrow">➔</span>
-        <span class="badge badge-kmb">KMB 234X</span>
-      </div>
-      <div class="pass-status">
-        ✓ 100% 適用九巴月票（無限次搭乘）
-      </div>
+  <div class="main-layout">
+    <div class="sidebar" id="route-list">
+      <div class="route-card">請輸入路線名稱搜尋...</div>
     </div>
+    <div id="map"></div>
   </div>
 
+  <script>
+    // 初始化 Leaflet 暗色地圖
+    const map = L.map('map').setView([22.3193, 114.1694], 12);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
+
+    let currentPolyline = null;
+    let markersGroup = L.layerGroup().addTo(map);
+
+    const API_ENDPOINTS = {
+      KMB: 'https://data.etabus.gov.hk/v1/transport/kmb',
+      CTB: 'https://data.etabus.gov.hk/v1/transport/citybus-nwfb',
+      MTR: 'https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php'
+    };
+
+    async function searchRoute() {
+      const operator = document.getElementById('operator-select').value;
+      const query = document.getElementById('route-search').value.trim().toUpperCase();
+      const sidebar = document.getElementById('route-list');
+
+      sidebar.innerHTML = '<div class="route-card">搜尋資料中...</div>';
+
+      if (operator === 'KMB') {
+        fetchKMBRoute(query);
+      } else if (operator === 'CTB') {
+        fetchCTBRoute(query);
+      } else if (operator === 'MTR') {
+        fetchMTRSchedule(query);
+      }
+    }
+
+    // 1. 九巴 / 龍運 API 邏輯
+    async function fetchKMBRoute(route) {
+      const sidebar = document.getElementById('route-list');
+      try {
+        const res = await fetch(\/route/\);
+        const data = await res.json();
+
+        if (!data.data || data.data.length === 0) {
+          sidebar.innerHTML = '<div class="route-card">找不到相關九巴路線。</div>';
+          return;
+        }
+
+        sidebar.innerHTML = '';
+        data.data.forEach(item => {
+          const isPassValid = !item.route.startsWith('K') && !item.route.startsWith('P9');
+          const card = document.createElement('div');
+          card.className = 'route-card';
+          card.innerHTML = 
+            <div class="card-header">
+              <span class="route-title"><span class="badge badge-kmb">KMB</span> \</span>
+              <span class="fare-tag">\</span>
+            </div>
+            <div class="route-details">往 \（由 \ 開出）</div>
+            <div class="eta-box" id="eta-\">點擊查看分站與即時 ETA</div>
+          ;
+          card.addEventListener('click', () => loadKMBStops(item.route, item.bound, item.service_type));
+          sidebar.appendChild(card);
+        });
+      } catch (e) {
+        sidebar.innerHTML = '<div class="route-card">九巴 API 載入失敗。</div>';
+      }
+    }
+
+    async function loadKMBStops(route, bound, serviceType) {
+      markersGroup.clearLayers();
+      if (currentPolyline) map.removeLayer(currentPolyline);
+
+      const boundParam = bound === 'O' ? 'outbound' : 'inbound';
+      try {
+        const res = await fetch(\/route-stop/\/\/\);
+        const stopData = await res.json();
+        const coords = [];
+
+        for (const item of stopData.data.slice(0, 15)) {
+          const stopRes = await fetch(\/stop/\);
+          const stopDetail = await stopRes.json();
+          const { lat, long, name_tc } = stopDetail.data;
+
+          const latNum = parseFloat(lat);
+          const lngNum = parseFloat(long);
+          coords.push([latNum, lngNum]);
+
+          L.marker([latNum, lngNum]).addTo(markersGroup).bindPopup(<b>\. \</b>);
+        }
+
+        if (coords.length > 0) {
+          currentPolyline = L.polyline(coords, { color: '#00d06c', weight: 5 }).addTo(map);
+          map.fitBounds(currentPolyline.getBounds());
+        }
+      } catch (e) {
+        console.error('KMB Stop loading error:', e);
+      }
+    }
+
+    // 2. 城巴 API 邏輯
+    async function fetchCTBRoute(route) {
+      const sidebar = document.getElementById('route-list');
+      try {
+        const res = await fetch(\/route/CTB/\);
+        const data = await res.json();
+
+        if (!data.data) {
+          sidebar.innerHTML = '<div class="route-card">找不到相關城巴路線。</div>';
+          return;
+        }
+
+        const item = data.data;
+        sidebar.innerHTML = 
+          <div class="route-card">
+            <div class="card-header">
+              <span class="route-title"><span class="badge badge-ctb">CTB</span> \</span>
+              <span class="fare-tag">城巴按程收費</span>
+            </div>
+            <div class="route-details">往 \（由 \ 開出）</div>
+          </div>
+        ;
+      } catch (e) {
+        sidebar.innerHTML = '<div class="route-card">城巴 API 載入失敗。</div>';
+      }
+    }
+
+    // 3. 港鐵 API 邏輯 (輸入車站代碼如 TSL, ADM, KOT)
+    async function fetchMTRSchedule(station) {
+      const sidebar = document.getElementById('route-list');
+      try {
+        const res = await fetch(\?line=TWL&sta=\);
+        const data = await res.json();
+
+        if (data.status === 0 || !data.data) {
+          sidebar.innerHTML = '<div class="route-card">請輸入有效的港鐵車站代碼（例如：TSL 荃灣, ADM 金鐘）。</div>';
+          return;
+        }
+
+        const key = Object.keys(data.data)[0];
+        const upTrains = data.data[key].UP || [];
+        const downTrains = data.data[key].DOWN || [];
+
+        let etaHtml = '<strong>即時列車到站時間：</strong><br>';
+        [...upTrains, ...downTrains].slice(0, 4).forEach(t => {
+          etaHtml += 往 \: \ 分鐘<br>;
+        });
+
+        sidebar.innerHTML = 
+          <div class="route-card">
+            <div class="card-header">
+              <span class="route-title"><span class="badge badge-mtr">MTR</span> 港鐵 \ 站</span>
+            </div>
+            <div class="eta-box">\</div>
+          </div>
+        ;
+      } catch (e) {
+        sidebar.innerHTML = '<div class="route-card">港鐵 API 載入失敗。</div>';
+      }
+    }
+
+    document.getElementById('route-search').addEventListener('change', searchRoute);
+    document.getElementById('operator-select').addEventListener('change', searchRoute);
+
+    searchRoute();
+  </script>
 </body>
 </html>

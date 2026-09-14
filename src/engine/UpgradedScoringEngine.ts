@@ -1,10 +1,19 @@
-﻿export interface Segment {
+﻿export interface Stop {
+  id: string;
+  name: string;
+  lat?: number;
+  lng?: number;
+}
+
+export interface Segment {
   operator: 'KMB' | 'LWB' | 'MTR' | 'CTB' | string;
   routeName: string;
   rideTimeMinutes: number;
   scheduledIntervalMinutes?: number;
   realtimeEtaMinutes?: number;
   isEtaFresh?: boolean;
+  originStop?: Stop;
+  destinationStop?: Stop;
 }
 
 export type TransitLeg = Segment;

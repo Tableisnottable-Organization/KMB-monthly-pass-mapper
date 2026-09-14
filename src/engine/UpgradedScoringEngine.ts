@@ -38,11 +38,8 @@ export class UpgradedScoringEngine {
     const minutes = date.getMinutes();
     const timeInMin = hours * 60 + minutes;
 
-    // 深夜 (23:00 - 05:50)
     if (timeInMin >= 1380 || timeInMin < 350) return 1.8;
-    // 繁忙時間 (07:00-09:30 & 17:00-19:30)
     if ((timeInMin >= 420 && timeInMin <= 570) || (timeInMin >= 1020 && timeInMin <= 1170)) return 1.0;
-    // 非繁忙時間
     return 1.3;
   }
 

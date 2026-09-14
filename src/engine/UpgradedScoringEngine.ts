@@ -1,475 +1,83 @@
-export type Operator = 'KMB' | 'LWB' | 'MTR' | 'CTB';
-
-export type RouteMode = 'BUS' | 'SUBWAY' | 'WALK' | 'FERRY';
-
-export interface RealtimeEta {
-  etaMinutes: number;
-  dataTime: string;
-  isLive: boolean;
-  source: 'DATAGOVHK' | 'SCHEDULED';
+﻿export interface Segment {
+  operator: 'KMB' | 'LWB' | 'MTR' | 'CTB' | string;
+  rideTimeMinutes: number;
+  scheduledIntervalMinutes?: number;
+  realtimeEtaMinutes?: number;
+  isEtaFresh?: boolean;
 }
 
-export interface Stop {
-  id: string;
-  name: string;
-  lat: number;
-  lng: number;
-}
-
-export interface TransitLeg {
-  id: string;
-  operator: Operator;
-  mode: RouteMode;
-  routeNumber: string;
-  originStop: Stop;
-  destinationStop: Stop;
-  journeyTimeMinutes: number;
-  scheduledIntervalMinutes: number;
-  realtimeEta: RealtimeEta | null;
-  fare: number;
-}
-
-export interface RouteOption {
-  id: string;
-  legs: TransitLeg[];
-  walkTransferTimeMinutes: number;
-  transferCount: number;
-}
-
-export interface LegScoreBreakdown {
-  legId: string;
-  routeNumber: string;
-  operator: Operator;
-  mode: RouteMode;
-  journeyTimeMinutes: number;
-  scheduledIntervalMinutes: number;
-  realtimeEtaMinutes: number | null;
-  realtimeEtaAgeMinutes: number | null;
-  realtimeEtaUsed: boolean;
-  scheduledEtaComponent: number;
-  etaComponent: number;
-  operatorPenalty: number;
-  total: number;
-}
-
-export interface ScoreBreakdown {
-  segmentMultiplier: number;
-  timePeriod: 'PEAK' | 'OFF_PEAK' | 'LATE_NIGHT';
-  legs: LegScoreBreakdown[];
-  walkTransferTimeMinutes: number;
-  longDistanceTransferSurcharge: number;
-  effectiveWalkTransferPenalty: number;
-  transferCount: number;
-  transferPenalty: number;
-  legSubtotal: number;
-  finalScore: number;
-}
-
-export interface ScoredRoute extends RouteOption {
-  finalScore: number;
-  discountedFare: number;
-  bbiDiscountApplied: number;
-  breakdown: ScoreBreakdown;
-}
-
-export interface ScoringEngineOptions {
-  bbiMaximumDiscount?: number;
+export interface Route {
+  segments: Segment[];
+  walkTransferTimeMinutes?: number;
   longDistanceTransferSurcharge?: number;
-  longDistanceTransferDistanceKm?: number;
-  transferPenaltyMinutes?: number;
-  /**
-   * Prevent stale live feeds from replacing the scheduled headway estimate.
-   * Set to null to preserve the legacy "any live value wins" behaviour.
-   */
-  realtimeEtaMaxAgeMinutes?: number | null;
 }
 
-const OPERATOR_PENALTIES: Readonly<Record<Operator, number>> = {
-  KMB: -1,
-  LWB: -0.46,
-  MTR: 0.5,
-  CTB: 1,
-};
+export interface ScoreResult {
+  finalScore: number;
+  legSubtotal: number;
+  transferPenalty: number;
+  walkTransferTime: number;
+  longDistanceSurcharge: number;
+}
 
-const DEFAULT_BBI_MAXIMUM_DISCOUNT = 4.2;
-const DEFAULT_LONG_DISTANCE_TRANSFER_SURCHARGE = 3;
-const DEFAULT_LONG_DISTANCE_TRANSFER_DISTANCE_KM = 0.75;
-const DEFAULT_TRANSFER_PENALTY_MINUTES = 8;
-const DEFAULT_REALTIME_ETA_MAX_AGE_MINUTES = 15;
-const EARTH_RADIUS_KM = 6371;
-const HONG_KONG_TIME_ZONE = 'Asia/Hong_Kong';
-
-type TimePeriod = ScoreBreakdown['timePeriod'];
-
-/**
- * Scores route options using journey time, service frequency, operator preference,
- * transfer friction, real-time ETA data, and Hong Kong BBI fare rules.
- */
 export class UpgradedScoringEngine {
-  private readonly bbiMaximumDiscount: number;
-  private readonly longDistanceTransferSurcharge: number;
-  private readonly longDistanceTransferDistanceKm: number;
-  private readonly transferPenaltyMinutes: number;
-  private readonly realtimeEtaMaxAgeMinutes: number | null;
-
-  public constructor(options: ScoringEngineOptions = {}) {
-    this.bbiMaximumDiscount = this.validateNonNegative(
-      options.bbiMaximumDiscount ?? DEFAULT_BBI_MAXIMUM_DISCOUNT,
-      'bbiMaximumDiscount',
-    );
-    this.longDistanceTransferSurcharge = this.validateNonNegative(
-      options.longDistanceTransferSurcharge ?? DEFAULT_LONG_DISTANCE_TRANSFER_SURCHARGE,
-      'longDistanceTransferSurcharge',
-    );
-    this.longDistanceTransferDistanceKm = this.validateNonNegative(
-      options.longDistanceTransferDistanceKm ?? DEFAULT_LONG_DISTANCE_TRANSFER_DISTANCE_KM,
-      'longDistanceTransferDistanceKm',
-    );
-    this.transferPenaltyMinutes = this.validateNonNegative(
-      options.transferPenaltyMinutes ?? DEFAULT_TRANSFER_PENALTY_MINUTES,
-      'transferPenaltyMinutes',
-    );
-    this.realtimeEtaMaxAgeMinutes =
-      options.realtimeEtaMaxAgeMinutes === null
-        ? null
-        : this.validateNonNegative(
-            options.realtimeEtaMaxAgeMinutes ??
-              DEFAULT_REALTIME_ETA_MAX_AGE_MINUTES,
-            'realtimeEtaMaxAgeMinutes',
-          );
-  }
-
-  public scoreRoute(route: RouteOption, date: Date = new Date()): ScoredRoute {
-    this.validateRoute(route);
-    this.validateDate(date);
-
-    const { multiplier, period } = getSegmentMultiplier(date);
-    const legs = route.legs.map((leg) => this.scoreLeg(leg, multiplier, date));
-    const legSubtotal = legs.reduce((sum, leg) => sum + leg.total, 0);
-    const longDistanceTransferSurcharge = this.hasLongDistanceTransfer(route)
-      ? this.longDistanceTransferSurcharge
-      : 0;
-    const effectiveWalkTransferPenalty =
-      route.walkTransferTimeMinutes + longDistanceTransferSurcharge;
-    const transferPenalty = route.transferCount * this.transferPenaltyMinutes;
-    const finalScore =
-      legSubtotal + effectiveWalkTransferPenalty + transferPenalty;
-    const { discountedFare, bbiDiscountApplied } = this.calculateFare(route.legs);
-
-    return {
-      ...route,
-      finalScore,
-      discountedFare,
-      bbiDiscountApplied,
-      breakdown: {
-        segmentMultiplier: multiplier,
-        timePeriod: period,
-        legs,
-        walkTransferTimeMinutes: route.walkTransferTimeMinutes,
-        longDistanceTransferSurcharge,
-        effectiveWalkTransferPenalty,
-        transferCount: route.transferCount,
-        transferPenalty,
-        legSubtotal,
-        finalScore,
-      },
+  public static getOperatorAdjustment(operator: string): number {
+    const adjustments: Record<string, number> = {
+      KMB: -1.0,
+      LWB: -0.46,
+      MTR: 0.5,
+      CTB: 1.0,
     };
+    return adjustments[operator] ?? 0;
   }
 
-  public scoreRoutes(
-    routes: readonly RouteOption[],
-    date: Date = new Date(),
-  ): ScoredRoute[] {
-    return routes.map((route) => this.scoreRoute(route, date));
+  public static getTimeMultiplier(date: Date = new Date()): number {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const timeInMin = hours * 60 + minutes;
+
+    // 深夜 (23:00 - 05:50)
+    if (timeInMin >= 1380 || timeInMin < 350) return 1.8;
+    // 繁忙時間 (07:00-09:30 & 17:00-19:30)
+    if ((timeInMin >= 420 && timeInMin <= 570) || (timeInMin >= 1020 && timeInMin <= 1170)) return 1.0;
+    // 非繁忙時間
+    return 1.3;
   }
 
-  public calculateFare(legs: readonly TransitLeg[]): {
-    discountedFare: number;
-    bbiDiscountApplied: number;
-  } {
-    let grossFare = 0;
-    let bbiDiscountApplied = 0;
-    let previousDiscountEligibleOperator: Operator | null = null;
+  public static calculateSegmentScore(segment: Segment, date: Date = new Date()): number {
+    const segmentMultiplier = this.getTimeMultiplier(date);
+    let etaComponent = 0;
 
-    for (const leg of legs) {
-      const fare = this.validateMoney(leg.fare, `fare for leg ${leg.id}`);
-      grossFare += fare;
-
-      if (
-        previousDiscountEligibleOperator !== null &&
-        isSameBbiGroup(previousDiscountEligibleOperator, leg.operator)
-      ) {
-        const discount = Math.min(this.bbiMaximumDiscount, fare);
-        bbiDiscountApplied += discount;
-      }
-
-      previousDiscountEligibleOperator = isBbiOperator(leg.operator)
-        ? leg.operator
-        : null;
+    if (segment.realtimeEtaMinutes !== undefined && segment.isEtaFresh) {
+      etaComponent = segment.realtimeEtaMinutes * segmentMultiplier;
+    } else {
+      const scheduledInterval = segment.scheduledIntervalMinutes ?? 12;
+      etaComponent = scheduledInterval * 0.5 * segmentMultiplier;
     }
 
-    return {
-      discountedFare: this.roundCurrency(Math.max(0, grossFare - bbiDiscountApplied)),
-      bbiDiscountApplied: this.roundCurrency(bbiDiscountApplied),
-    };
+    const operatorAdjustment = this.getOperatorAdjustment(segment.operator);
+    return segment.rideTimeMinutes + etaComponent + operatorAdjustment;
   }
 
-  private scoreLeg(
-    leg: TransitLeg,
-    segmentMultiplier: number,
-    scoringDate: Date,
-  ): LegScoreBreakdown {
-    const journeyTimeMinutes = this.validateNonNegative(
-      leg.journeyTimeMinutes,
-      `journeyTimeMinutes for leg ${leg.id}`,
-    );
-    const scheduledIntervalMinutes = this.validateNonNegative(
-      leg.scheduledIntervalMinutes,
-      `scheduledIntervalMinutes for leg ${leg.id}`,
-    );
-    const scheduledEtaComponent =
-      scheduledIntervalMinutes * 0.5 * segmentMultiplier;
-    const realtimeEta = this.getLiveEta(leg, scoringDate);
-    const etaComponent = realtimeEta.minutes ?? scheduledEtaComponent;
-    const operatorPenalty = OPERATOR_PENALTIES[leg.operator];
-
-    return {
-      legId: leg.id,
-      routeNumber: leg.routeNumber,
-      operator: leg.operator,
-      mode: leg.mode,
-      journeyTimeMinutes,
-      scheduledIntervalMinutes,
-      realtimeEtaMinutes: realtimeEta.minutes,
-      realtimeEtaAgeMinutes: realtimeEta.ageMinutes,
-      realtimeEtaUsed: realtimeEta.minutes !== null,
-      scheduledEtaComponent,
-      etaComponent,
-      operatorPenalty,
-      total: journeyTimeMinutes + etaComponent + operatorPenalty,
-    };
-  }
-
-  private getLiveEta(
-    leg: TransitLeg,
-    scoringDate: Date,
-  ): { minutes: number | null; ageMinutes: number | null } {
-    if (leg.realtimeEta === null || !leg.realtimeEta.isLive) {
-      return { minutes: null, ageMinutes: null };
-    }
-
-    const etaMinutes = this.validateNonNegative(
-      leg.realtimeEta.etaMinutes,
-      `realtime ETA for leg ${leg.id}`,
-    );
-    const dataTimestamp = Date.parse(leg.realtimeEta.dataTime);
-    if (!Number.isFinite(dataTimestamp)) {
-      return { minutes: null, ageMinutes: null };
-    }
-
-    const ageMinutes = Math.max(
-      0,
-      (scoringDate.getTime() - dataTimestamp) / 60000,
-    );
-    if (
-      this.realtimeEtaMaxAgeMinutes !== null &&
-      ageMinutes > this.realtimeEtaMaxAgeMinutes
-    ) {
-      return { minutes: null, ageMinutes };
-    }
-
-    return { minutes: etaMinutes, ageMinutes };
-  }
-
-  private hasLongDistanceTransfer(route: RouteOption): boolean {
-    if (route.legs.length < 2) {
-      return false;
-    }
-
-    return route.legs.some((leg, index) => {
-      if (index === 0) {
-        return false;
-      }
-
-      const previousLeg = route.legs[index - 1];
-      return (
-        isCentralHongKongStationTransfer(
-          previousLeg.destinationStop,
-          leg.originStop,
-        ) ||
-        haversineDistanceKm(
-          previousLeg.destinationStop,
-          leg.originStop,
-        ) >= this.longDistanceTransferDistanceKm
-      );
+  public static calculateRouteScore(route: Route, date: Date = new Date()): ScoreResult {
+    let legSubtotal = 0;
+    route.segments.forEach((seg) => {
+      legSubtotal += this.calculateSegmentScore(seg, date);
     });
+
+    const transferCount = Math.max(0, route.segments.length - 1);
+    const transferPenalty = transferCount * 8;
+    const walkTransferTime = route.walkTransferTimeMinutes || 0;
+    const longDistanceSurcharge = route.longDistanceTransferSurcharge || 0;
+
+    const finalScore = legSubtotal + walkTransferTime + longDistanceSurcharge + transferPenalty;
+
+    return {
+      finalScore: Number(finalScore.toFixed(2)),
+      legSubtotal: Number(legSubtotal.toFixed(2)),
+      transferPenalty,
+      walkTransferTime,
+      longDistanceSurcharge,
+    };
   }
-
-  private validateRoute(route: RouteOption): void {
-    if (!route || typeof route !== 'object') {
-      throw new Error('route must be an object.');
-    }
-    if (!route.id.trim()) {
-      throw new Error('Route id must not be empty.');
-    }
-    if (!Number.isFinite(route.walkTransferTimeMinutes) || route.walkTransferTimeMinutes < 0) {
-      throw new Error('walkTransferTimeMinutes must be a finite non-negative number.');
-    }
-    if (!Number.isInteger(route.transferCount) || route.transferCount < 0) {
-      throw new Error('transferCount must be a non-negative integer.');
-    }
-    if (route.legs.length === 0) {
-      throw new Error('A route must contain at least one leg.');
-    }
-    route.legs.forEach((leg) => this.validateLeg(leg));
-  }
-
-  private validateLeg(leg: TransitLeg): void {
-    if (!leg.id.trim() || !leg.routeNumber.trim()) {
-      throw new Error('Each leg must have a non-empty id and routeNumber.');
-    }
-    this.validateNonNegative(
-      leg.journeyTimeMinutes,
-      `journeyTimeMinutes for leg ${leg.id}`,
-    );
-    this.validateNonNegative(
-      leg.scheduledIntervalMinutes,
-      `scheduledIntervalMinutes for leg ${leg.id}`,
-    );
-    this.validateMoney(leg.fare, `fare for leg ${leg.id}`);
-    [leg.originStop, leg.destinationStop].forEach((stop) => {
-      if (
-        !stop.id.trim() ||
-        !stop.name.trim() ||
-        !Number.isFinite(stop.lat) ||
-        !Number.isFinite(stop.lng) ||
-        stop.lat < -90 ||
-        stop.lat > 90 ||
-        stop.lng < -180 ||
-        stop.lng > 180
-      ) {
-        throw new Error(`Invalid stop data for leg ${leg.id}.`);
-      }
-    });
-  }
-
-  private validateDate(date: Date): void {
-    if (Number.isNaN(date.getTime())) {
-      throw new Error('date must be a valid Date.');
-    }
-  }
-
-  private validateNonNegative(value: number, field: string): number {
-    if (!Number.isFinite(value) || value < 0) {
-      throw new Error(`${field} must be a finite non-negative number.`);
-    }
-    return value;
-  }
-
-  private validateMoney(value: number, field: string): number {
-    return this.validateNonNegative(value, field);
-  }
-
-  private roundCurrency(value: number): number {
-    return Math.round((value + Number.EPSILON) * 100) / 100;
-  }
-}
-
-export function getSegmentMultiplier(date: Date): {
-  multiplier: number;
-  period: TimePeriod;
-} {
-  if (Number.isNaN(date.getTime())) {
-    throw new Error('date must be a valid Date.');
-  }
-
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: HONG_KONG_TIME_ZONE,
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-  }).formatToParts(date);
-  const hour = Number(parts.find((part) => part.type === 'hour')?.value);
-  const minute = Number(
-    parts.find((part) => part.type === 'minute')?.value,
-  );
-  const minutes = hour * 60 + minute;
-  if (isWithinTimeRange(minutes, 23 * 60, 24 * 60) || isWithinTimeRange(minutes, 0, 5 * 60 + 50)) {
-    return { multiplier: 1.8, period: 'LATE_NIGHT' };
-  }
-  if (
-    isWithinTimeRange(minutes, 7 * 60, 9 * 60 + 30) ||
-    isWithinTimeRange(minutes, 17 * 60, 19 * 60 + 30)
-  ) {
-    return { multiplier: 1, period: 'PEAK' };
-  }
-  return { multiplier: 1.3, period: 'OFF_PEAK' };
-}
-
-function isWithinTimeRange(
-  minutes: number,
-  startInclusive: number,
-  endInclusive: number,
-): boolean {
-  return minutes >= startInclusive && minutes <= endInclusive;
-}
-
-function isBbiOperator(operator: Operator): boolean {
-  return operator === 'KMB' || operator === 'LWB' || operator === 'CTB';
-}
-
-function isSameBbiGroup(first: Operator, second: Operator): boolean {
-  const kmbGroup: ReadonlyArray<Operator> = ['KMB', 'LWB'];
-  return (
-    (kmbGroup.includes(first) && kmbGroup.includes(second)) ||
-    (first === 'CTB' && second === 'CTB')
-  );
-}
-
-function isCentralHongKongStationTransfer(first: Stop, second: Stop): boolean {
-  const stationNames = [first.name, second.name].map((name) =>
-    name.toLocaleLowerCase(),
-  );
-  const hasCentral = stationNames.some((name) => name.includes('central') || name.includes('中環'));
-  const hasHongKong = stationNames.some(
-    (name) =>
-      name.includes('hong kong') ||
-      name.includes('hongkong') ||
-      name.includes('香港站') ||
-      name.includes('香港'),
-  );
-  return hasCentral && hasHongKong;
-}
-
-function haversineDistanceKm(first: Stop, second: Stop): number {
-  const latitudeDelta = degreesToRadians(second.lat - first.lat);
-  const longitudeDelta = degreesToRadians(second.lng - first.lng);
-  const firstLatitude = degreesToRadians(first.lat);
-  const secondLatitude = degreesToRadians(second.lat);
-  const a =
-    Math.sin(latitudeDelta / 2) ** 2 +
-    Math.cos(firstLatitude) *
-      Math.cos(secondLatitude) *
-      Math.sin(longitudeDelta / 2) ** 2;
-  return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(a));
-}
-
-function degreesToRadians(degrees: number): number {
-  return (degrees * Math.PI) / 180;
-}
-
-export const defaultUpgradedScoringEngine = new UpgradedScoringEngine();
-
-export function scoreRoute(
-  route: RouteOption,
-  date: Date = new Date(),
-): ScoredRoute {
-  return defaultUpgradedScoringEngine.scoreRoute(route, date);
-}
-
-export function scoreRoutes(
-  routes: readonly RouteOption[],
-  date: Date = new Date(),
-): ScoredRoute[] {
-  return defaultUpgradedScoringEngine.scoreRoutes(routes, date);
 }

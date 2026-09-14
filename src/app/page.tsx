@@ -60,7 +60,7 @@ export default function Home() {
           <div key={route.id} style={{ backgroundColor: '#1e1e1e', borderRadius: '16px', padding: '16px', border: '1px solid #2a2a2a' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#00d06c' }}>
-                {index === 0 ? '最佳推薦' : 方案 }
+                {index === 0 ? '最佳推薦' : '方案 ' + (index + 1)}
               </span>
               <span style={{ backgroundColor: 'rgba(0, 208, 108, 0.15)', color: '#00d06c', padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold' }}>
                 代價分: {route.score.finalScore}

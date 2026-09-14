@@ -80,3 +80,10 @@ export class UpgradedScoringEngine {
     };
   }
 }
+
+export function scoreRoutes(routes: Route[], date: Date = new Date()) {
+  return routes.map((route) => ({
+    ...route,
+    score: UpgradedScoringEngine.calculateRouteScore(route, date),
+  })).sort((a, b) => a.score.finalScore - b.score.finalScore);
+}

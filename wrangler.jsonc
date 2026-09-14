@@ -1,4 +1,4 @@
-{
+﻿{
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "kmb-monthly-pass-mapper",
   "main": ".open-next/worker.js",
@@ -19,3 +19,4 @@
     "binding": "ASSETS"
   }
 }
+

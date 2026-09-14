@@ -7,12 +7,17 @@
   isEtaFresh?: boolean;
 }
 
+export type TransitLeg = Segment;
+
 export interface Route {
   id: string;
   segments: Segment[];
+  legs?: Segment[];
   walkTransferTimeMinutes?: number;
   longDistanceTransferSurcharge?: number;
 }
+
+export type RouteOption = Route;
 
 export interface ScoreResult {
   finalScore: number;
@@ -59,12 +64,13 @@ export class UpgradedScoringEngine {
   }
 
   public static calculateRouteScore(route: Route, date: Date = new Date()): ScoreResult {
+    const targetSegments = route.segments || route.legs || [];
     let legSubtotal = 0;
-    route.segments.forEach((seg) => {
+    targetSegments.forEach((seg) => {
       legSubtotal += this.calculateSegmentScore(seg, date);
     });
 
-    const transferCount = Math.max(0, route.segments.length - 1);
+    const transferCount = Math.max(0, targetSegments.length - 1);
     const transferPenalty = transferCount * 8;
     const walkTransferTime = route.walkTransferTimeMinutes || 0;
     const longDistanceSurcharge = route.longDistanceTransferSurcharge || 0;

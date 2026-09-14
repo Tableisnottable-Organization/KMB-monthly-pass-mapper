@@ -41,16 +41,16 @@ export default function Home() {
   })).sort((a, b) => a.score.finalScore - b.score.finalScore);
 
   return (
-    <div style={{ backgroundColor: '#121212', color: '#fff', minHeight: '100vh', fontFamily: '-apple-system, sans-serif' }}>
+    <div style={{ backgroundColor: '#121212', color: '#fff', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
       <header style={{ backgroundColor: '#000', padding: '16px', borderBottom: '1px solid #222' }}>
         <div style={{ backgroundColor: '#1e1e1e', borderRadius: '14px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#00d06c' }}></span>
-            <input value={start} onChange={(e) => setStart(e.target.value)} style={{ background: 'transparent', border: 'none', color: '#fff', outline: 'none', width: '100%' }} />
+            <input value={start} onChange={(e) => setStart(e.target.value)} style={{ background: 'transparent', border: 'none', color: '#fff', outline: 'none', width: '100%', fontSize: '15px' }} />
           </div>
           <div style={{ borderTop: '1px solid #333', paddingTop: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#e2001a' }}></span>
-            <input value={end} onChange={(e) => setEnd(e.target.value)} style={{ background: 'transparent', border: 'none', color: '#fff', outline: 'none', width: '100%' }} />
+            <input value={end} onChange={(e) => setEnd(e.target.value)} style={{ background: 'transparent', border: 'none', color: '#fff', outline: 'none', width: '100%', fontSize: '15px' }} />
           </div>
         </div>
       </header>
@@ -74,7 +74,7 @@ export default function Home() {
                 if (seg.operator === 'MTR') bg = '#990000';
                 if (seg.operator === 'CTB') bg = '#f39c12';
                 return (
-                  <React.Fragment key={i}>
+                  <React.Fragment key="{i}">
                     <span style={{ backgroundColor: bg, color: seg.operator === 'CTB' ? '#000' : '#fff', padding: '4px 8px', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px' }}>
                       {seg.operator} {seg.routeName}
                     </span>
